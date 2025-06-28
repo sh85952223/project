@@ -1,0 +1,10 @@
+# version: '3.9'  ← 지워도 작동엔 영향 없음
+services:
+  web:
+    build: .
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
