@@ -2,7 +2,7 @@ import React, { createContext, useContext, ReactNode, useMemo, useState } from '
 import { useSchedules } from '../hooks/useSchedules';
 import { Schedule, ClassInfo } from '../types';
 
-// 1. Context에 담길 데이터와 함수의 타입을 정의합니다.
+// Context에 담길 데이터와 함수의 타입을 정의합니다.
 // 모달 상태와 제어 함수 타입을 추가합니다.
 interface ScheduleContextType {
   schedules: Schedule[];
@@ -36,7 +36,7 @@ export const useScheduleData = () => {
 export const ScheduleProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const scheduleData = useSchedules();
 
-  // 2. 모달의 상태를 여기서 중앙 관리합니다.
+  // 모달의 상태를 여기서 중앙 관리합니다.
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [preselectedClassId, setPreselectedClassId] = useState<string | null>(null);
 
@@ -52,7 +52,7 @@ export const ScheduleProvider: React.FC<{ children: ReactNode }> = ({ children }
     setPreselectedClassId(null);
   };
   
-  // 3. 생성한 상태와 함수들을 context를 통해 공유합니다.
+  // 생성한 상태와 함수들을 context를 통해 공유합니다.
   const value = useMemo(() => ({
     ...scheduleData,
     isScheduleModalOpen,
