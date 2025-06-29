@@ -29,7 +29,8 @@ export interface Schedule {
   subject: string;
   progress?: string;
   absences: Absence[];
-  praises: Praise[]; // 👈 이 부분이 Praise 타입을 사용합니다.
+  // 👇 [수정] 누락되었던 필드를 명확하게 추가합니다.
+  praises: Praise[];
   specialNotes: SpecialNote[];
   createdAt: string;
   updatedAt: string;
@@ -42,7 +43,6 @@ export interface Absence {
   reason: string;
 }
 
-// 👇 [수정] Praise 타입을 별(stars)만 사용하도록 변경합니다.
 export interface Praise {
   studentId: string;
   studentName: string;

@@ -12,7 +12,8 @@ import {
   getDocs,
   where
 } from 'firebase/firestore';
-import { Schedule, ClassInfo, Student } from '../types';
+// 👇 [수정] 사용하지 않는 Student 타입을 import에서 제거했습니다.
+import { Schedule, ClassInfo } from '../types';
 import { useAuth } from '../context/AuthContext';
 
 export const useSchedules = () => {
@@ -79,6 +80,7 @@ export const useSchedules = () => {
     };
   }, [teacher]);
 
+  // 👇 [수정] 사용하지 않는 변수 선언을 정리했습니다.
   const initializeDefaultClasses = async (teacherId: string): Promise<ClassInfo[]> => {
     const batch = writeBatch(db);
     const classesCollection = collection(db, 'teachers', teacherId, 'classes');
@@ -114,7 +116,7 @@ export const useSchedules = () => {
     return newClasses;
   };
 
-  const addSchedule = useCallback(async (schedule: Omit<Schedule, 'id' | 'teacherId' | 'createdAt' | 'updatedAt' | 'praises' | 'specialNotes'>) => {
+  const addSchedule = useCallback(async (schedule: Omit<Schedule, 'id' | 'teacherId' | 'createdAt' | 'updatedAt'>) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     const schedulesCollection = collection(db, 'teachers', teacher.id, 'schedules');
     await addDoc(schedulesCollection, {
@@ -136,7 +138,6 @@ export const useSchedules = () => {
     });
   }, [teacher]);
 
-  // 👇👇👇 [여기가 수정된 부분입니다] 👇👇👇
   const deleteSchedule = useCallback(async (id: string) => {
     if (!teacher) {
         alert('오류: 로그인 정보가 없습니다.');
