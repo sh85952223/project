@@ -7,17 +7,17 @@ import { Modal } from '../ui/Modal';
 import { ClassInfo, Student } from '../../types';
 import { Plus, Users, Upload, Trash2, Edit3, AlertCircle, CheckCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { useLocalStorage } from '../../hooks/useLocalStorage'; // 👈 useLocalStorage 훅 import
+import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 export const ClassManagement: React.FC = () => {
-  const { classes, deleteClass, addClass, updateClass } = useScheduleData();
+  // 👇 [수정] 사용하지 않는 addClass와 updateClass를 제거했습니다.
+  const { classes, deleteClass } = useScheduleData();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<ClassInfo | null>(null);
   const [editingClass, setEditingClass] = useState<ClassInfo | null>(null);
 
-  // 👇 [추가] 설정에서 학년별 배경색을 가져옵니다.
   const [grade1Color] = useLocalStorage<string>('settings:grade1Color', '#f8fafc');
   const [grade2Color] = useLocalStorage<string>('settings:grade2Color', '#f8fafc');
   const [grade3Color] = useLocalStorage<string>('settings:grade3Color', '#f8fafc');
