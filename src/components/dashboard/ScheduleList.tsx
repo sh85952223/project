@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useScheduleData } from '../../context/ScheduleContext'; // 1. 새로 만든 훅을 가져옵니다.
+import { useScheduleData } from '../../context/ScheduleContext';
 import { Schedule, Absence } from '../../types';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -9,19 +9,16 @@ import { Calendar, Clock, BookOpen, UserX, Edit3, Save, X, Trash2, Hash } from '
 import { format, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
-// 2. props 타입을 수정합니다. classId만 받습니다.
 interface ScheduleListProps {
   classId: string;
 }
 
 export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
-  // 3. Context로부터 필요한 데이터와 함수들을 모두 가져옵니다.
   const { schedules, classes, updateSchedule, deleteSchedule, isLoading } = useScheduleData();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<{ progress: string; absences: Absence[] }>({ progress: '', absences: [] });
 
-  // 4. 전달받은 classId를 기준으로 현재 반의 정보와 수업 목록을 필터링합니다.
   const classInfo = classes.find(c => c.id === classId);
   const classSchedules = schedules
     .filter(s => s.classId === classId)
@@ -44,7 +41,6 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
     setEditingId(null);
   };
   
-  // 나머지 핸들러 함수와 JSX는 이전과 거의 동일합니다.
   const handleCancel = () => {
     setEditingId(null);
   };
@@ -60,7 +56,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
     });
   };
 
-  const handleAbsenceReasonChange = (studentId: string, reason: string) => {
+   const handleAbsenceReasonChange = (studentId: string, reason: string) => {
     setEditData(prev => ({
       ...prev,
       absences: prev.absences.map(a =>
@@ -71,7 +67,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
 
   if (classSchedules.length === 0) {
     return (
-      <Card><CardContent className="text-center py-12">수업이 없습니다.</CardContent></Card>
+      <Card><CardContent className="text-center py-12">등록된 수업이 없습니다.</CardContent></Card>
     );
   }
 
@@ -79,7 +75,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
     <div className="space-y-4">
       {classSchedules.map(schedule => {
         const isEditing = editingId === schedule.id;
-        const studentOptions = classInfo?.students.map(s => ({ id: s.id, name: s.name, number: s.number })) || [];
+        const studentOptions = classInfo?.students?.map(s => ({ id: s.id, name: s.name, number: s.number })) || [];
 
         return (
           <Card key={schedule.id}>
@@ -117,7 +113,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
                      <div>
                         <label className="text-sm font-medium text-gray-700 mb-2 block">결석생</label>
                         {isEditing ? (
-                            <SearchableDropdown options={studentOptions} selectedIds={editData.absences.map(a => a.studentId)} onToggle={handleAbsenceToggle} />
+                            <SearchableDropdown options={studentOptions} selectedIds={editData.absences.map(a => a.studentId)} onToggle={handleAbsenceToggle} placeholder="결석생 선택" />
                         ) : (
                             schedule.absences.length > 0 ? (
                                 <ul className="space-y-1">

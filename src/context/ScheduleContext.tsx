@@ -1,8 +1,8 @@
-import React, { createContext, useContext, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useState } from 'react';
 import { useSchedules } from '../hooks/useSchedules';
 import { Schedule, ClassInfo } from '../types';
 
-// Context에 담길 데이터와 함수의 타입을 정의합니다.
+// 1. 모달 상태와 제어 함수 타입을 추가합니다.
 interface ScheduleContextType {
   schedules: Schedule[];
   classes: ClassInfo[];
@@ -14,12 +14,16 @@ interface ScheduleContextType {
   addClass: (classInfo: Omit<ClassInfo, 'id'>) => Promise<void>;
   updateClass: (classInfo: ClassInfo) => Promise<void>;
   deleteClass: (classId: string) => Promise<void>;
+
+  // Modal State and Functions
+  isScheduleModalOpen: boolean;
+  preselectedClassId: string | null;
+  openScheduleModal: (classId?: string | null) => void;
+  closeScheduleModal: () => void;
 }
 
-// Context를 생성합니다.
 const ScheduleContext = createContext<ScheduleContextType | undefined>(undefined);
 
-// 다른 컴포넌트에서 쉽게 Context를 사용할 수 있도록 커스텀 훅을 만듭니다.
 export const useScheduleData = () => {
   const context = useContext(ScheduleContext);
   if (!context) {
@@ -28,15 +32,33 @@ export const useScheduleData = () => {
   return context;
 };
 
-// Provider 컴포넌트를 정의합니다.
 export const ScheduleProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // useSchedules 훅의 모든 기능을 가져옵니다.
   const scheduleData = useSchedules();
+
+  // 2. 모달의 상태를 여기서 중앙 관리합니다.
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [preselectedClassId, setPreselectedClassId] = useState<string | null>(null);
+
+  // 모달을 여는 함수 (특정 반 ID를 받을 수 있음)
+  const openScheduleModal = (classId: string | null = null) => {
+    setPreselectedClassId(classId);
+    setIsScheduleModalOpen(true);
+  };
+
+  // 모달을 닫는 함수
+  const closeScheduleModal = () => {
+    setIsScheduleModalOpen(false);
+    setPreselectedClassId(null);
+  };
   
-  // useMemo를 사용하여 scheduleData가 변경될 때만 value 객체가 새로 생성되도록 최적화합니다.
+  // 3. 생성한 상태와 함수들을 context를 통해 공유합니다.
   const value = useMemo(() => ({
-    ...scheduleData
-  }), [scheduleData]);
+    ...scheduleData,
+    isScheduleModalOpen,
+    preselectedClassId,
+    openScheduleModal,
+    closeScheduleModal,
+  }), [scheduleData, isScheduleModalOpen, preselectedClassId]);
 
   return (
     <ScheduleContext.Provider value={value}>
