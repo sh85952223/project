@@ -31,10 +31,8 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
 
   const handleDeleteConfirm = async () => {
     if (!targetScheduleId) return;
-    const success = await deleteSchedule(targetScheduleId);
-    if (success) {
-      alert('수업 기록이 성공적으로 삭제되었습니다.');
-    }
+    // 성공 여부와 관계없이 deleteSchedule 함수를 호출합니다.
+    await deleteSchedule(targetScheduleId);
   };
 
   if (classSchedules.length === 0) {

@@ -27,10 +27,8 @@ export const TodaysLessonCard: React.FC<TodaysLessonCardProps> = ({
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   const handleDeleteConfirm = async () => {
-    const success = await deleteSchedule(schedule.id);
-    if (success) {
-      alert('수업 기록이 성공적으로 삭제되었습니다.');
-    }
+    // 성공 여부와 관계없이 deleteSchedule 함수를 호출합니다.
+    await deleteSchedule(schedule.id);
   };
 
   return (
