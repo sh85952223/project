@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { db } from '../firebase'; // Firestore 데이터베이스 인스턴스
+import { db } from '../firebase';
 import {
   collection,
   query,
@@ -10,31 +10,27 @@ import {
   doc,
   writeBatch,
   getDocs,
-  where // **수정: 'where' 함수를 import 목록에 추가했습니다.**
+  where
 } from 'firebase/firestore';
-import { Schedule, ClassInfo } from '../types';
+import { Schedule, ClassInfo, Student } from '../types';
 import { useAuth } from '../context/AuthContext';
 
-// useSchedules 훅을 정의합니다.
 export const useSchedules = () => {
-  const { teacher } = useAuth(); // 현재 로그인한 교사 정보를 가져옵니다.
+  const { teacher } = useAuth();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 실시간 데이터 로딩
   useEffect(() => {
-    // 로그인한 교사가 있을 때만 데이터를 가져옵니다.
     if (!teacher) {
       setIsLoading(false);
-      setSchedules([]); // 로그아웃 시 데이터 초기화
-      setClasses([]);   // 로그아웃 시 데이터 초기화
+      setSchedules([]);
+      setClasses([]);
       return;
     }
 
     setIsLoading(true);
 
-    // 1. 수업(Schedules) 데이터 실시간 감시
     const schedulesQuery = query(collection(db, 'teachers', teacher.id, 'schedules'));
     const unsubscribeSchedules = onSnapshot(schedulesQuery, (querySnapshot) => {
       const schedulesData = querySnapshot.docs.map(doc => ({
@@ -42,21 +38,23 @@ export const useSchedules = () => {
         ...doc.data()
       } as Schedule));
       setSchedules(schedulesData);
-    }, (error) => {
-      console.error("수업 정보 실시간 로딩 오류:", error);
     });
 
-    // 2. 반(Classes) 데이터 실시간 감시
     const classesQuery = query(collection(db, 'teachers', teacher.id, 'classes'));
     const unsubscribeClasses = onSnapshot(classesQuery, async (querySnapshot) => {
-      const classesData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as ClassInfo));
+      const classesData = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name,
+          grade: data.grade,
+          students: data.students || [],
+        } as ClassInfo;
+      });
       
-      // 반 정보가 하나도 없으면 기본 데이터를 생성합니다.
-      if (classesData.length === 0 && querySnapshot.metadata.fromCache === false) {
-        await initializeDefaultClasses(teacher.id);
+      if (classesData.length === 0 && !querySnapshot.metadata.fromCache) {
+        const newClasses = await initializeDefaultClasses(teacher.id);
+        setClasses(newClasses);
       } else {
         setClasses(classesData);
       }
@@ -66,33 +64,47 @@ export const useSchedules = () => {
       setIsLoading(false);
     });
 
-    // 컴포넌트가 언마운트되면 실시간 감시를 중단합니다.
     return () => {
       unsubscribeSchedules();
       unsubscribeClasses();
     };
-  }, [teacher]); // teacher 정보가 바뀔 때마다(로그인/로그아웃) 다시 실행됩니다.
+  }, [teacher]);
 
-  // 기본 반/학생 데이터 생성 함수
-  const initializeDefaultClasses = async (teacherId: string) => {
-    const defaultClasses: Omit<ClassInfo, 'id'>[] = [
-      { name: '1학년 1반', grade: 1, students: [] },
-      { name: '1학년 2반', grade: 1, students: [] },
-    ];
-    
-    // 여러 문서를 한 번에 쓰는 'batch' 작업을 사용합니다.
+  const initializeDefaultClasses = async (teacherId: string): Promise<ClassInfo[]> => {
     const batch = writeBatch(db);
     const classesCollection = collection(db, 'teachers', teacherId, 'classes');
-    
-    defaultClasses.forEach(classData => {
-      const docRef = doc(classesCollection); // 새 문서 참조 생성
-      batch.set(docRef, classData);
-    });
+    const newClasses: ClassInfo[] = [];
+
+    const class1Ref = doc(classesCollection);
+    const class1Data: ClassInfo = { 
+      id: class1Ref.id,
+      name: '1학년 1반', 
+      grade: 1, 
+      students: [
+        { id: `student_${Date.now()}_1`, name: '김민준', classId: class1Ref.id, number: 1 },
+        { id: `student_${Date.now()}_2`, name: '이서아', classId: class1Ref.id, number: 2 }
+      ]
+    };
+    batch.set(class1Ref, { name: class1Data.name, grade: class1Data.grade, students: class1Data.students });
+    newClasses.push(class1Data);
+
+    const class2Ref = doc(classesCollection);
+    const class2Data: ClassInfo = {
+      id: class2Ref.id,
+      name: '1학년 2반',
+      grade: 1,
+      students: [
+        { id: `student_${Date.now()}_3`, name: '박도윤', classId: class2Ref.id, number: 1 },
+        { id: `student_${Date.now()}_4`, name: '최지우', classId: class2Ref.id, number: 2 }
+      ]
+    };
+    batch.set(class2Ref, { name: class2Data.name, grade: class2Data.grade, students: class2Data.students });
+    newClasses.push(class2Data);
 
     await batch.commit();
+    return newClasses;
   };
 
-  // 수업 추가
   const addSchedule = useCallback(async (schedule: Omit<Schedule, 'id' | 'teacherId' | 'createdAt' | 'updatedAt'>) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     const schedulesCollection = collection(db, 'teachers', teacher.id, 'schedules');
@@ -104,7 +116,6 @@ export const useSchedules = () => {
     });
   }, [teacher]);
 
-  // 수업 정보 업데이트
   const updateSchedule = useCallback(async (id: string, updates: Partial<Schedule>) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     const scheduleDoc = doc(db, 'teachers', teacher.id, 'schedules', id);
@@ -114,14 +125,12 @@ export const useSchedules = () => {
     });
   }, [teacher]);
 
-  // 수업 삭제
   const deleteSchedule = useCallback(async (id: string) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     const scheduleDoc = doc(db, 'teachers', teacher.id, 'schedules', id);
     await deleteDoc(scheduleDoc);
   }, [teacher]);
   
-  // 진도 내용만 삭제
   const clearProgress = useCallback(async (id: string) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     const scheduleDoc = doc(db, 'teachers', teacher.id, 'schedules', id);
@@ -132,27 +141,31 @@ export const useSchedules = () => {
     });
   }, [teacher]);
 
-
-  // 반 추가
   const addClass = useCallback(async (classInfo: Omit<ClassInfo, 'id'>) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     const classesCollection = collection(db, 'teachers', teacher.id, 'classes');
     await addDoc(classesCollection, classInfo);
   }, [teacher]);
 
-  // 반 정보 업데이트 (학생 명단 포함)
+  // === 여기를 수정했습니다 ===
+  // 반 정보를 업데이트하는 로직을 더 안정적으로 변경합니다.
   const updateClass = useCallback(async (classInfo: ClassInfo) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     const classDoc = doc(db, 'teachers', teacher.id, 'classes', classInfo.id);
-    await updateDoc(classDoc, { ...classInfo }); // **수정: 객체를 복사해서 전달**
+    
+    // 데이터를 순수한 JavaScript 객체로 변환하여 Firestore에 저장할 때 발생할 수 있는 잠재적 오류를 방지합니다.
+    const plainClassInfo = JSON.parse(JSON.stringify(classInfo));
+    
+    // 문서 ID는 업데이트 데이터에서 제외합니다.
+    delete plainClassInfo.id; 
+
+    await updateDoc(classDoc, plainClassInfo);
   }, [teacher]);
   
-  // 반 삭제 (관련된 모든 수업 기록 포함)
   const deleteClass = useCallback(async (classId: string) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     
     const schedulesCollection = collection(db, 'teachers', teacher.id, 'schedules');
-    // **수정: 잘못된 쿼리 문법을 수정했습니다.**
     const q = query(schedulesCollection, where("classId", "==", classId));
     
     const schedulesSnapshot = await getDocs(q);
@@ -165,11 +178,8 @@ export const useSchedules = () => {
     batch.delete(classDoc);
     
     await batch.commit();
-
   }, [teacher]);
 
-
-  // 이 훅이 반환하는 값들
   return {
     schedules,
     classes,
