@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useScheduleData } from '../../context/ScheduleContext';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -7,15 +7,31 @@ import { Modal } from '../ui/Modal';
 import { ClassInfo, Student } from '../../types';
 import { Plus, Users, Upload, Trash2, Edit3, AlertCircle, CheckCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { useLocalStorage } from '../../hooks/useLocalStorage'; // 👈 useLocalStorage 훅 import
 
 export const ClassManagement: React.FC = () => {
-  // 👇 [수정] 사용하지 않는 addClass와 updateClass를 제거했습니다.
-  const { classes, deleteClass } = useScheduleData();
+  const { classes, deleteClass, addClass, updateClass } = useScheduleData();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<ClassInfo | null>(null);
   const [editingClass, setEditingClass] = useState<ClassInfo | null>(null);
+
+  // 👇 [추가] 설정에서 학년별 배경색을 가져옵니다.
+  const [grade1Color] = useLocalStorage<string>('settings:grade1Color', '#f8fafc');
+  const [grade2Color] = useLocalStorage<string>('settings:grade2Color', '#f8fafc');
+  const [grade3Color] = useLocalStorage<string>('settings:grade3Color', '#f8fafc');
+
+  const groupedClasses = useMemo(() => {
+    return classes.reduce((acc, currentClass) => {
+      const grade = currentClass.grade;
+      if (!acc[grade]) {
+        acc[grade] = [];
+      }
+      acc[grade].push(currentClass);
+      return acc;
+    }, {} as Record<number, ClassInfo[]>);
+  }, [classes]);
 
   const handleAddClass = () => {
     setEditingClass(null);
@@ -39,7 +55,7 @@ export const ClassManagement: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">반 관리</h1>
         <Button onClick={handleAddClass} className="flex items-center space-x-2">
@@ -47,31 +63,44 @@ export const ClassManagement: React.FC = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {classes.map(classInfo => (
-          <Card key={classInfo.id} hover>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">{classInfo.name}</h3>
-                <div className="flex items-center space-x-1">
-                  <Button variant="ghost" size="sm" onClick={() => handleEditClass(classInfo)}><Edit3 className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDeleteClass(classInfo.id)} className="text-red-600"><Trash2 className="h-4 w-4" /></Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 mb-4">학생 수: {classInfo.students.length}명</p>
-              <Button variant="outline" size="sm" onClick={() => handleManageStudents(classInfo)} className="w-full flex items-center justify-center space-x-2">
-                <Users className="h-4 w-4"/>
-                <span>학생 관리</span>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {Object.keys(groupedClasses).sort().map(grade => (
+        <div key={grade}>
+            <h2 className="text-xl font-semibold mb-3">{grade}학년</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {groupedClasses[Number(grade)].map(classInfo => {
+                    const gradeColors: { [key: number]: string } = { 1: grade1Color, 2: grade2Color, 3: grade3Color };
+                    const backgroundColor = gradeColors[classInfo.grade] || 'white';
+                    
+                    return (
+                        <Card 
+                            key={classInfo.id} 
+                            hover
+                            style={{ backgroundColor }}
+                        >
+                            <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-semibold">{classInfo.name}</h3>
+                                <div className="flex items-center space-x-1">
+                                <Button variant="ghost" size="sm" onClick={() => handleEditClass(classInfo)}><Edit3 className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleDeleteClass(classInfo.id)} className="text-red-600"><Trash2 className="h-4 w-4" /></Button>
+                                </div>
+                            </div>
+                            </CardHeader>
+                            <CardContent>
+                            <p className="text-sm text-gray-600 mb-4">학생 수: {classInfo.students.length}명</p>
+                            <Button variant="outline" size="sm" onClick={() => handleManageStudents(classInfo)} className="w-full flex items-center justify-center space-x-2">
+                                <Users className="h-4 w-4"/>
+                                <span>학생 관리</span>
+                            </Button>
+                            </CardContent>
+                        </Card>
+                    );
+                })}
+            </div>
+        </div>
+      ))}
 
       <AddClassModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
-
       {editingClass && <EditClassModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} classInfo={editingClass} />}
       {selectedClass && <StudentManagementModal isOpen={isStudentModalOpen} onClose={() => setIsStudentModalOpen(false)} classInfo={selectedClass} />}
     </div>

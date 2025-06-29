@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useScheduleData } from '../../context/ScheduleContext';
 import { Card, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -9,16 +9,18 @@ import { Plus, ArrowLeft, Edit3, Trash2, UserX, BookText, History, FileText } fr
 import { format, isToday, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { ScheduleList } from './ScheduleList';
-import { Schedule } from '../../types';
+import { Schedule, ClassInfo } from '../../types';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 
+// 과목 배지를 위한 파스텔톤 색상 목록
 const subjectColors = [
   '#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF',
   '#A0C4FF', '#BDB2FF', '#FFC6FF', '#E0BBE4', '#D291BC'
 ];
 
+// 과목 이름에 따라 고유한 색상을 할당하는 함수
 const getSubjectColor = (subject: string): string => {
-  if (!subject) return '#E0E0E0';
+  if (!subject) return '#E0E0E0'; // 기본 회색
   let hash = 0;
   for (let i = 0; i < subject.length; i++) {
     hash += subject.charCodeAt(i);
@@ -43,6 +45,18 @@ export const Dashboard: React.FC = () => {
   const [grade1Color] = useLocalStorage<string>('settings:grade1Color', '#f8fafc');
   const [grade2Color] = useLocalStorage<string>('settings:grade2Color', '#f8fafc');
   const [grade3Color] = useLocalStorage<string>('settings:grade3Color', '#f8fafc');
+
+  // 👇 [추가] 반 목록을 학년별로 그룹화하는 로직
+  const groupedClasses = useMemo(() => {
+    return classes.reduce((acc, currentClass) => {
+      const grade = currentClass.grade;
+      if (!acc[grade]) {
+        acc[grade] = [];
+      }
+      acc[grade].push(currentClass);
+      return acc;
+    }, {} as Record<number, ClassInfo[]>);
+  }, [classes]);
 
   const today = new Date();
 
@@ -244,15 +258,18 @@ export const Dashboard: React.FC = () => {
         )}
       </div>
 
-      <div>
+      <div className="space-y-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">반별 현황</h2>
-        {classes.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {classes.map(classInfo => (
-              <ClassCard key={classInfo.id} classInfo={classInfo} onClick={() => handleViewClassDetail(classInfo.id)} />
-            ))}
-          </div>
-        ) : (
+        {Object.keys(groupedClasses).length > 0 ? Object.keys(groupedClasses).sort().map(grade => (
+            <div key={grade}>
+              <h3 className="text-xl font-semibold mb-3">{grade}학년</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {groupedClasses[Number(grade)].map(classInfo => (
+                  <ClassCard key={classInfo.id} classInfo={classInfo} onClick={() => handleViewClassDetail(classInfo.id)} />
+                ))}
+              </div>
+            </div>
+          )) : (
           <Card><CardContent className="text-center py-12"><p>아직 등록된 반이 없습니다.</p></CardContent></Card>
         )}
       </div>

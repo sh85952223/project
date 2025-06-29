@@ -50,3 +50,12 @@ export const CardContent: React.FC<{ children: React.ReactNode; className?: stri
     {children}
   </div>
 );
+
+export const CardFooter: React.FC<{ children: React.ReactNode; className?: string }> = ({
+  children,
+  className,
+}) => (
+  <div className={cn('px-6 py-3 border-t border-gray-200 bg-gray-50', className)}>
+    {children}
+  </div>
+);
