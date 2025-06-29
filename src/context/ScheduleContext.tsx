@@ -2,7 +2,8 @@ import React, { createContext, useContext, ReactNode, useMemo, useState } from '
 import { useSchedules } from '../hooks/useSchedules';
 import { Schedule, ClassInfo } from '../types';
 
-// 1. 모달 상태와 제어 함수 타입을 추가합니다.
+// 1. Context에 담길 데이터와 함수의 타입을 정의합니다.
+// 모달 상태와 제어 함수 타입을 추가합니다.
 interface ScheduleContextType {
   schedules: Schedule[];
   classes: ClassInfo[];

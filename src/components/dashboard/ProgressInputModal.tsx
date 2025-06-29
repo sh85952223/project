@@ -13,7 +13,6 @@ interface ProgressInputModalProps {
   scheduleId: string;
 }
 
-// export 키워드를 확인하여 컴포넌트를 정상적으로 내보냅니다.
 export const ProgressInputModal: React.FC<ProgressInputModalProps> = ({
   isOpen,
   onClose,
@@ -58,7 +57,7 @@ export const ProgressInputModal: React.FC<ProgressInputModalProps> = ({
 
   if (!schedule) return null;
 
-  const studentOptions = classInfo?.students.map(s => ({ id: s.id, name: s.name, number: s.number })) || [];
+  const studentOptions = classInfo?.students?.map(s => ({ id: s.id, name: s.name, number: s.number })) || [];
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="진도 및 결석생 입력" size="lg">
@@ -79,7 +78,7 @@ export const ProgressInputModal: React.FC<ProgressInputModalProps> = ({
                     <UserX className="h-5 w-5 text-red-600" />
                     <span className="font-medium text-gray-800">결석생</span>
                 </label>
-                <SearchableDropdown options={studentOptions} selectedIds={absences.map(a => a.studentId)} onToggle={handleAbsenceToggle} />
+                <SearchableDropdown options={studentOptions} selectedIds={absences.map(a => a.studentId)} onToggle={handleAbsenceToggle} placeholder="결석생 선택"/>
                 {absences.length > 0 && (
                     <div className="space-y-3 mt-4 pt-4 border-t">
                         <h4 className="text-sm font-medium text-gray-700">결석 사유</h4>
@@ -88,21 +87,11 @@ export const ProgressInputModal: React.FC<ProgressInputModalProps> = ({
                                 <div className="flex items-center space-x-2 w-24 flex-shrink-0">
                                 <div className="flex items-center space-x-1 text-xs text-gray-500">
                                     <Hash className="h-3 w-3" />
-                                    <span className="w-4 text-center font-mono">
-                                    {absence.studentNumber || '-'}
-                                    </span>
+                                    <span className="w-4 text-center font-mono">{absence.studentNumber || '-'}</span>
                                 </div>
-                                <span className="text-sm font-medium text-red-700">
-                                    {absence.studentName}
-                                </span>
+                                <span className="text-sm font-medium text-red-700">{absence.studentName}</span>
                                 </div>
-                                <Input
-                                    type="text"
-                                    value={absence.reason}
-                                    onChange={(e) => handleAbsenceReasonChange(absence.studentId, e.target.value)}
-                                    placeholder="결석 사유 (예: 감기)"
-                                    className="flex-1"
-                                />
+                                <Input type="text" value={absence.reason} onChange={(e) => handleAbsenceReasonChange(absence.studentId, e.target.value)} placeholder="결석 사유 (예: 감기)" className="flex-1" />
                             </div>
                         ))}
                     </div>
@@ -117,4 +106,3 @@ export const ProgressInputModal: React.FC<ProgressInputModalProps> = ({
     </Modal>
   );
 };
-

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ScheduleProvider } from './context/ScheduleContext'; // 1. ScheduleProvider를 import 합니다.
+import { ScheduleProvider } from './context/ScheduleContext';
 import { Layout } from './components/Layout';
 import { AuthForm } from './components/auth/AuthForm';
 import { Dashboard } from './components/dashboard/Dashboard';
@@ -26,7 +26,6 @@ function AppContent() {
   }
 
   return (
-    // 2. 로그인 후에 보여지는 모든 컴포넌트를 ScheduleProvider로 감싸줍니다.
     <ScheduleProvider>
       <Layout currentView={currentView} onViewChange={setCurrentView}>
         {currentView === 'dashboard' ? <Dashboard /> : <ClassManagement />}
