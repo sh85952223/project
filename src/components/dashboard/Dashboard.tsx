@@ -123,14 +123,18 @@ export const Dashboard: React.FC = () => {
 
               return (
                 <Card key={schedule.id}>
-                  <CardContent className="p-4 space-y-3">
-                    {/* 👇👇👇 [여기가 복원된 부분입니다] 👇👇👇 */}
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 text-center flex-shrink-0">
-                                <p className="font-bold text-xl text-blue-600">{schedule.time.replace('교시','')}</p>
-                                <p className="text-xs text-gray-500">교시</p>
-                            </div>
+                  {/* 👇 [수정] CardContent를 div로 감싸고, 전체 레이아웃을 2단으로 변경 */}
+                  <CardContent className="p-4">
+                    <div className="flex space-x-4">
+                      {/* 좌측: 교시 정보 */}
+                      <div className="w-12 text-center flex-shrink-0 border-r pr-4">
+                          <p className="font-bold text-xl text-blue-600">{schedule.time.replace('교시','')}</p>
+                          <p className="text-xs text-gray-500">교시</p>
+                      </div>
+
+                      {/* 우측: 메인 콘텐츠 (오늘의 수업 정보 + 지난 수업 정보) */}
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-start justify-between">
                             <div>
                                 <p className="font-semibold">{classInfo?.name} - {schedule.subject}</p>
                                 <div className="flex items-center text-sm text-gray-600 mt-1">
@@ -142,76 +146,65 @@ export const Dashboard: React.FC = () => {
                                     <p>결석: {schedule.absences.length > 0 ? schedule.absences.map(a => a.studentName).join(', ') : '없음'}</p>
                                 </div>
                             </div>
-                        </div>
-                        <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
-                            <Button size="sm" variant="outline" title="진도/결석 입력" onClick={() => openProgressModal(schedule.id)}>
-                                <Edit3 className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="outline" title="상세 기록" onClick={() => openLessonDetail(schedule.id)}>
-                                <BookText className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" title="수업 삭제" onClick={() => deleteSchedule(schedule.id)} className="text-red-500">
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                    
-                    {/* 지난 수업 정보 UI (2단 레이아웃) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 bg-gray-50 p-3 rounded-lg text-sm">
-                        <div>
-                            <div className="flex items-center text-gray-500 mb-2">
-                                <History className="h-4 w-4 mr-1.5"/>
-                                <h4 className="font-medium">
-                                    최근 수업
-                                    {overallPreviousSession && (
-                                        <span className="text-xs font-normal text-gray-400 ml-1">
-                                            ({format(parseISO(overallPreviousSession.date), 'M/d')} {overallPreviousSession.time})
-                                        </span>
-                                    )}
-                                </h4>
+                            <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
+                                <Button size="sm" variant="outline" title="진도/결석 입력" onClick={() => openProgressModal(schedule.id)}>
+                                    <Edit3 className="h-4 w-4" />
+                                </Button>
+                                <Button size="sm" variant="outline" title="상세 기록" onClick={() => openLessonDetail(schedule.id)}>
+                                    <BookText className="h-4 w-4" />
+                                </Button>
+                                <Button size="sm" variant="ghost" title="수업 삭제" onClick={() => deleteSchedule(schedule.id)} className="text-red-500">
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
                             </div>
-                            {overallPreviousSession ? (
-                                <div className="space-y-1.5 pl-1">
-                                    <div className="flex items-start text-gray-700">
-                                        <FileText className="h-4 w-4 mr-1.5 flex-shrink-0 text-gray-400 mt-0.5"/>
-                                        <p className="truncate">{overallPreviousSession.progress}</p>
-                                    </div>
-                                    <div className="flex items-start text-red-600">
-                                        <UserX className="h-4 w-4 mr-1.5 flex-shrink-0 mt-0.5"/>
-                                        <p className="truncate">{overallPreviousSession.absences.length > 0 ? overallPreviousSession.absences.map(a => a.studentName).join(', ') : '없음'}</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="text-gray-400 pl-6 text-xs">기록 없음</p>
-                            )}
                         </div>
-                        <div>
-                            <div className="flex items-center text-gray-500 mb-2">
-                                <BookText className="h-4 w-4 mr-1.5"/>
-                                <h4 className="font-medium">
-                                    동일 과목 최근 수업
-                                    {subjectPreviousSession && (
-                                        <span className="text-xs font-normal text-gray-400 ml-1">
-                                            ({format(parseISO(subjectPreviousSession.date), 'M/d')} {subjectPreviousSession.time})
-                                        </span>
-                                    )}
-                                </h4>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 bg-gray-50 p-3 rounded-lg text-sm">
+                            <div>
+                                <div className="flex items-center text-gray-500 mb-2">
+                                    <History className="h-4 w-4 mr-1.5"/>
+                                    <h4 className="font-medium">
+                                        최근 수업
+                                        {/* 👇 [수정] 과목명 추가 */}
+                                        {overallPreviousSession && (
+                                            <span className="text-xs font-normal text-gray-400 ml-1">
+                                                ({format(parseISO(overallPreviousSession.date), 'M/d')} {overallPreviousSession.time} - {overallPreviousSession.subject})
+                                            </span>
+                                        )}
+                                    </h4>
+                                </div>
+                                {overallPreviousSession ? (
+                                    <div className="space-y-1.5 pl-1 text-xs">
+                                        <div className="flex items-start text-gray-700"><FileText className="h-3 w-3 mr-1.5 flex-shrink-0 mt-0.5"/><p className="truncate">{overallPreviousSession.progress}</p></div>
+                                        <div className="flex items-start text-red-600"><UserX className="h-3 w-3 mr-1.5 flex-shrink-0 mt-0.5"/><p className="truncate">{overallPreviousSession.absences.length > 0 ? overallPreviousSession.absences.map(a => a.studentName).join(', ') : '없음'}</p></div>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-400 pl-6 text-xs">기록 없음</p>
+                                )}
                             </div>
-                            {subjectPreviousSession ? (
-                                <div className="space-y-1.5 pl-1">
-                                    <div className="flex items-start text-gray-700">
-                                        <FileText className="h-4 w-4 mr-1.5 flex-shrink-0 text-gray-400 mt-0.5"/>
-                                        <p className="truncate">{subjectPreviousSession.progress}</p>
-                                    </div>
-                                    <div className="flex items-start text-red-600">
-                                        <UserX className="h-4 w-4 mr-1.5 flex-shrink-0 mt-0.5"/>
-                                        <p className="truncate">{subjectPreviousSession.absences.length > 0 ? subjectPreviousSession.absences.map(a => a.studentName).join(', ') : '없음'}</p>
-                                    </div>
+                            <div>
+                                <div className="flex items-center text-gray-500 mb-2">
+                                    <BookText className="h-4 w-4 mr-1.5"/>
+                                    <h4 className="font-medium">
+                                        동일 과목 수업
+                                        {subjectPreviousSession && (
+                                            <span className="text-xs font-normal text-gray-400 ml-1">
+                                                ({format(parseISO(subjectPreviousSession.date), 'M/d')} {subjectPreviousSession.time})
+                                            </span>
+                                        )}
+                                    </h4>
                                 </div>
-                            ) : (
-                                <p className="text-gray-400 pl-6 text-xs">기록 없음</p>
-                            )}
+                                {subjectPreviousSession ? (
+                                     <div className="space-y-1.5 pl-1 text-xs">
+                                        <div className="flex items-start text-gray-700"><FileText className="h-3 w-3 mr-1.5 flex-shrink-0 mt-0.5"/><p className="truncate">{subjectPreviousSession.progress}</p></div>
+                                        <div className="flex items-start text-red-600"><UserX className="h-3 w-3 mr-1.5 flex-shrink-0 mt-0.5"/><p className="truncate">{subjectPreviousSession.absences.length > 0 ? subjectPreviousSession.absences.map(a => a.studentName).join(', ') : '없음'}</p></div>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-400 pl-6 text-xs">기록 없음</p>
+                                )}
+                            </div>
                         </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
