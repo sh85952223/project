@@ -34,12 +34,28 @@ export const Dashboard: React.FC = () => {
         console.error("Invalid date format for schedule:", schedule);
         return false;
     }
-  }).sort((a, b) => a.time.localeCompare(b.time));
+  }).sort((a, b) => a.time.localeCompare(b.time, undefined, { numeric: true }));
 
-  const getPreviousClassSession = (classId: string, currentDate: string): Schedule | null => {
-    return schedules
-      .filter(s => s.classId === classId && s.progress && s.date < currentDate)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] || null;
+  // 👈 [수정] '지난 수업'을 찾는 로직 개선
+  const getPreviousClassSession = (currentSchedule: Schedule): Schedule | null => {
+    const { classId, date: currentDate, time: currentTime } = currentSchedule;
+
+    const candidates = schedules.filter(s => 
+      s.classId === classId && // 같은 반이어야 하고
+      s.progress &&             // 진도 내용이 있어야 하며
+      s.id !== currentSchedule.id && // 자기 자신은 제외하고
+      // (날짜가 이전이거나) 또는 (날짜는 같은데 시간이 이전)인 경우
+      (s.date < currentDate || (s.date === currentDate && s.time.localeCompare(currentTime, undefined, { numeric: true }) < 0))
+    );
+
+    if (candidates.length === 0) return null;
+
+    // 후보들을 날짜 내림차순, 시간 내림차순으로 정렬하여 가장 최근 수업을 찾음
+    return candidates.sort((a, b) => {
+      const dateComparison = b.date.localeCompare(a.date);
+      if (dateComparison !== 0) return dateComparison;
+      return b.time.localeCompare(a.time, undefined, { numeric: true });
+    })[0];
   };
 
   const handleProgressInput = (scheduleId: string) => {
@@ -110,7 +126,7 @@ export const Dashboard: React.FC = () => {
           <div className="space-y-4">
             {todaySchedules.map(schedule => {
               const classInfo = classes.find(c => c.id === schedule.classId);
-              const previousSession = getPreviousClassSession(schedule.classId, schedule.date);
+              const previousSession = getPreviousClassSession(schedule);
 
               return (
                 <Card key={schedule.id}>
@@ -143,9 +159,7 @@ export const Dashboard: React.FC = () => {
                             </Button>
                         </div>
                     </div>
-                    {/* 하단: 이전 수업 정보
-                      👈 [수정] 이 부분의 UI가 개선되었습니다. 
-                    */}
+                    {/* 하단: 이전 수업 정보 */}
                     <div className="bg-gray-50 p-3 rounded-lg text-sm">
                       <div className="flex items-center text-gray-500 mb-2">
                           <History className="h-4 w-4 mr-2"/>
