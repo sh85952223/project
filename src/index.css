@@ -164,3 +164,11 @@
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
+
+@layer components {
+      /* 모든 폼 입력 요소에 적용될 공통 스타일 클래스 */
+      .form-input {
+        @apply w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 transition-all duration-200;
+        @apply focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500;
+      }
+    }
