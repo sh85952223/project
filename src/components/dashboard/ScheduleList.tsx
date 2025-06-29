@@ -29,9 +29,9 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
     setIsConfirmModalOpen(true);
   };
 
+  // 👇 [수정] 사용자님의 코드에 맞춰, 반환값을 확인하지 않고 삭제 함수만 호출합니다.
   const handleDeleteConfirm = async () => {
     if (!targetScheduleId) return;
-    // 성공 여부와 관계없이 deleteSchedule 함수를 호출합니다.
     await deleteSchedule(targetScheduleId);
   };
 
