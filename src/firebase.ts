@@ -1,16 +1,18 @@
+// src/firebase.ts
+
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// 사용자님의 Firebase 프로젝트 설정 정보입니다.
+// 환경 변수에서 Firebase 설정 정보 가져오기
 const firebaseConfig = {
-  apiKey: "AIzaSyD4WoZhVDoqawKxyals3DYXbU7LLRTHF10",
-  authDomain: "classprogress-14369.firebaseapp.com",
-  projectId: "classprogress-14369",
-  storageBucket: "classprogress-14369.appspot.com",
-  messagingSenderId: "890517195769",
-  appId: "1:890517195769:web:7c4c8a7ca874cf73620b28",
-  measurementId: "G-4XGKZ5CH6T"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Firebase 앱 초기화

@@ -1,7 +1,9 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
+// 👈 [수정] `as` 속성을 추가하여 다른 HTML 요소로 렌더링할 수 있도록 합니다.
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  as?: React.ElementType;
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
@@ -9,6 +11,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button: React.FC<ButtonProps> = ({
   className,
+  as: Component = 'button', // as 속성이 없으면 기본값으로 'button'을 사용합니다.
   variant = 'primary',
   size = 'md',
   children,
@@ -30,12 +33,13 @@ export const Button: React.FC<ButtonProps> = ({
     lg: 'px-6 py-3 text-lg',
   };
 
+  // 👈 [수정] 렌더링할 컴포넌트(태그)를 동적으로 결정합니다.
   return (
-    <button
+    <Component
       className={cn(baseClasses, variants[variant], sizes[size], className)}
       {...props}
     >
       {children}
-    </button>
+    </Component>
   );
 };

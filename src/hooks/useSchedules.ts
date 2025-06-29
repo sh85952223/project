@@ -21,6 +21,18 @@ export const useSchedules = () => {
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // 👈 [수정] 정렬 함수 추가
+  const sortClasses = (classesToSort: ClassInfo[]): ClassInfo[] => {
+    return classesToSort.sort((a, b) => {
+      // 1. 학년(grade)으로 오름차순 정렬
+      if (a.grade !== b.grade) {
+        return a.grade - b.grade;
+      }
+      // 2. 학년이 같으면 반 이름(name)으로 오름차순 정렬 (숫자 기반)
+      return a.name.localeCompare(b.name, undefined, { numeric: true });
+    });
+  };
+
   useEffect(() => {
     if (!teacher) {
       setIsLoading(false);
@@ -54,9 +66,11 @@ export const useSchedules = () => {
       
       if (classesData.length === 0 && !querySnapshot.metadata.fromCache) {
         const newClasses = await initializeDefaultClasses(teacher.id);
-        setClasses(newClasses);
+        // 👈 [수정] 정렬 함수 적용
+        setClasses(sortClasses(newClasses));
       } else {
-        setClasses(classesData);
+        // 👈 [수정] 정렬 함수 적용
+        setClasses(sortClasses(classesData));
       }
       setIsLoading(false);
     }, (error) => {
@@ -147,18 +161,11 @@ export const useSchedules = () => {
     await addDoc(classesCollection, classInfo);
   }, [teacher]);
 
-  // === 여기를 수정했습니다 ===
-  // 반 정보를 업데이트하는 로직을 더 안정적으로 변경합니다.
   const updateClass = useCallback(async (classInfo: ClassInfo) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     const classDoc = doc(db, 'teachers', teacher.id, 'classes', classInfo.id);
-    
-    // 데이터를 순수한 JavaScript 객체로 변환하여 Firestore에 저장할 때 발생할 수 있는 잠재적 오류를 방지합니다.
     const plainClassInfo = JSON.parse(JSON.stringify(classInfo));
-    
-    // 문서 ID는 업데이트 데이터에서 제외합니다.
     delete plainClassInfo.id; 
-
     await updateDoc(classDoc, plainClassInfo);
   }, [teacher]);
   

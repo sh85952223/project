@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+// 👈 [수정] 경로를 '../firebase'로 변경해주세요.
 import { auth, db } from '../firebase';
 import {
   onAuthStateChanged,
@@ -38,8 +39,18 @@ const mapFirebaseUserToTeacher = async (user: User): Promise<Teacher | null> => 
   const docSnap = await getDoc(docRef);
 
   if (docSnap.exists()) {
-    return docSnap.data() as Teacher;
+    // Firestore에서 가져온 데이터와 User 객체의 기본 정보를 합칩니다.
+    const dbData = docSnap.data();
+    return {
+      id: user.uid,
+      name: user.displayName || dbData.name || '이름 없음',
+      email: user.email || dbData.email || '',
+      password: '', // 비밀번호는 저장하지 않습니다.
+      createdAt: user.metadata.creationTime || dbData.createdAt || new Date().toISOString(),
+      ...dbData // Firestore에 저장된 추가 필드가 있다면 여기에 포함됩니다.
+    } as Teacher;
   }
+  // Firestore에 사용자 문서가 없는 경우 (예: 인증만 생성된 경우)
   return {
     id: user.uid,
     name: user.displayName || '이름 없음',
@@ -55,9 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      // === 여기부터가 중요합니다! ===
       try {
-        // 1. Firebase와 통신을 시도합니다.
         if (user) {
           const teacherData = await mapFirebaseUserToTeacher(user);
           setTeacher(teacherData);
@@ -65,14 +74,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setTeacher(null);
         }
       } catch (error) {
-        // 2. 만약 통신 중 오류가 발생하면, 콘솔에 에러를 기록하고 안전하게 로그아웃 처리합니다.
         console.error("Firebase 인증 상태 확인 중 오류 발생:", error);
         setTeacher(null);
       } finally {
-        // 3. 성공하든, 오류가 발생하든, 무조건 로딩 상태를 해제하여 다음 화면으로 넘어가게 합니다.
         setIsLoading(false);
       }
-      // === 여기까지가 중요합니다! ===
     });
 
     return () => unsubscribe();
