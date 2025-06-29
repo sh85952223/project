@@ -9,23 +9,29 @@ import { ko } from 'date-fns/locale';
 
 // 학생 상세 정보 뷰 (수정 없음)
 const StudentDetailView: React.FC<{ student: Student; classInfo: ClassInfo; schedules: Schedule[]; onBack: () => void; }> = ({ student, classInfo, schedules, onBack }) => {
+  
   const studentRecords = useMemo(() => {
     const records: any[] = [];
+
     schedules.forEach(schedule => {
-      if (schedule.classId !== classInfo.id) return;
-      const absence = schedule.absences?.find(a => a.studentId === student.id);
-      if (absence) {
-        records.push({ type: 'absence', date: schedule.date, time: schedule.time, subject: schedule.subject, reason: absence.reason || '사유 미입력' });
-      }
-      const praise = schedule.praises?.find(p => p.studentId === student.id);
-      if (praise && praise.stars > 0) {
-        records.push({ type: 'praise', date: schedule.date, time: schedule.time, subject: schedule.subject, stars: praise.stars });
-      }
-      const note = schedule.specialNotes?.find(n => n.studentId === student.id);
-      if (note && note.note.trim()) {
-        records.push({ type: 'note', date: schedule.date, time: schedule.time, subject: schedule.subject, note: note.note });
-      }
+        if(schedule.classId !== classInfo.id) return;
+
+        const absence = schedule.absences?.find(a => a.studentId === student.id);
+        if(absence) {
+            records.push({ type: 'absence', date: schedule.date, time: schedule.time, subject: schedule.subject, reason: absence.reason || '사유 미입력' });
+        }
+
+        const praise = schedule.praises?.find(p => p.studentId === student.id);
+        if(praise && praise.stars > 0) {
+            records.push({ type: 'praise', date: schedule.date, time: schedule.time, subject: schedule.subject, stars: praise.stars });
+        }
+
+        const note = schedule.specialNotes?.find(n => n.studentId === student.id);
+        if(note && note.note.trim()) {
+            records.push({ type: 'note', date: schedule.date, time: schedule.time, subject: schedule.subject, note: note.note });
+        }
     });
+
     return records.sort((a, b) => b.date.localeCompare(a.date));
   }, [schedules, student, classInfo]);
 
@@ -56,9 +62,9 @@ const StudentDetailView: React.FC<{ student: Student; classInfo: ClassInfo; sche
                   {record.type === 'note' && <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-1 rounded-full">기록</span>}
                 </div>
                 <div className="flex items-start mt-1.5 ml-2 text-sm">
-                  {record.type === 'absence' && <><UserX className="h-4 w-4 mr-2 mt-0.5 text-red-500" /><p className="text-red-500">{record.reason}</p></>}
-                  {record.type === 'praise' && <div className="flex items-center text-yellow-600"><Star className="h-4 w-4 mr-2 fill-current" /><p>{record.stars}개</p></div>}
-                  {record.type === 'note' && <><MessageSquare className="h-4 w-4 mr-2 mt-0.5 text-green-600" /><p className="text-green-700">{record.note}</p></>}
+                    {record.type === 'absence' && <><UserX className="h-4 w-4 mr-2 mt-0.5 text-red-500"/><p className="text-red-500">{record.reason}</p></>}
+                    {record.type === 'praise' && <div className="flex items-center text-yellow-600"><Star className="h-4 w-4 mr-2 fill-current"/><p>{record.stars}개</p></div>}
+                    {record.type === 'note' && <><MessageSquare className="h-4 w-4 mr-2 mt-0.5 text-green-600"/><p className="text-green-700">{record.note}</p></>}
                 </div>
               </li>
             )) : (
@@ -85,8 +91,8 @@ export const StudentManagement: React.FC = () => {
 
   const getMonthlyAbsences = (studentId: string) => {
     const today = new Date();
-    return schedules.filter(schedule =>
-      isSameMonth(parseISO(schedule.date), today) &&
+    return schedules.filter(schedule => 
+      isSameMonth(parseISO(schedule.date), today) && 
       schedule.absences?.some(absence => absence.studentId === studentId)
     ).length;
   };
@@ -95,6 +101,18 @@ export const StudentManagement: React.FC = () => {
     return schedules.reduce((acc, schedule) => {
       const studentPraise = schedule.praises?.find(p => p.studentId === studentId);
       return acc + (studentPraise?.stars || 0);
+    }, 0);
+  };
+
+  // 👇 [추가] 이번 달 별 개수를 계산하는 함수
+  const getMonthlyStars = (studentId: string) => {
+    const today = new Date();
+    return schedules.reduce((acc, schedule) => {
+        if (isSameMonth(parseISO(schedule.date), today)) {
+            const studentPraise = schedule.praises?.find(p => p.studentId === studentId);
+            return acc + (studentPraise?.stars || 0);
+        }
+        return acc;
     }, 0);
   };
 
@@ -142,15 +160,15 @@ export const StudentManagement: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">학생별 현황</h1>
-          <p className="text-sm text-gray-500 mt-1 flex items-center">
-            <Calendar className="h-4 w-4 mr-1.5" />
-            <span>{format(new Date(), 'yyyy년 M월')} 기준</span>
-          </p>
+            <h1 className="text-2xl font-bold">학생별 현황</h1>
+            <p className="text-sm text-gray-500 mt-1 flex items-center">
+                <Calendar className="h-4 w-4 mr-1.5" />
+                <span>{format(new Date(), 'yyyy년 M월')} 기준</span>
+            </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" size="sm" onClick={() => handleExpandAll(true)}>전체 펼치기</Button>
-          <Button variant="outline" size="sm" onClick={() => handleExpandAll(false)}>전체 접기</Button>
+            <Button variant="outline" size="sm" onClick={() => handleExpandAll(true)}>전체 펼치기</Button>
+            <Button variant="outline" size="sm" onClick={() => handleExpandAll(false)}>전체 접기</Button>
         </div>
       </div>
       <div className="space-y-4">
@@ -158,21 +176,22 @@ export const StudentManagement: React.FC = () => {
           const isExpanded = expandedClasses.has(classInfo.id);
           return (
             <div key={classInfo.id} className="bg-white rounded-lg border border-gray-200 shadow-sm">
-              <button
+              <button 
                 onClick={() => handleToggleClass(classInfo.id)}
                 className="w-full flex items-center justify-between p-4"
               >
                 <h2 className="text-lg font-semibold">{classInfo.name}</h2>
-                <ChevronDown
+                <ChevronDown 
                   className={`h-5 w-5 text-gray-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                 />
               </button>
               {isExpanded && (
                 <div className="px-4 pb-4">
                   <ul className="divide-y divide-gray-100 border-t border-gray-200">
-                    {classInfo.students.sort((a, b) => (a.number || 999) - (b.number || 999)).map(student => {
+                    {classInfo.students.sort((a,b) => (a.number || 999) - (b.number || 999)).map(student => {
                       const absenceCount = getMonthlyAbsences(student.id);
                       const starCount = getTotalStars(student.id);
+                      const monthlyStarCount = getMonthlyStars(student.id); // 👈 이번 달 별 개수 계산
                       const noteCount = getTotalNotes(student.id);
                       return (
                         <li key={student.id} onClick={() => setSelectedStudent({ student, classInfo })} className="p-3 flex items-center justify-between hover:bg-gray-50 cursor-pointer rounded-md">
@@ -180,18 +199,20 @@ export const StudentManagement: React.FC = () => {
                             <span className="w-8 text-center text-gray-500 font-mono text-sm">{student.number || '-'}</span>
                             <span className="font-medium text-gray-800">{student.name}</span>
                           </div>
+                          {/* 👇 [수정] 이번 달 별 개수 표시 UI 추가 */}
                           <div className="flex items-center space-x-4 text-sm">
                             <div className={`flex items-center ${starCount > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
-                              <Star className="h-4 w-4 mr-1" />
-                              <span>총 {starCount}개</span>
+                                <Star className="h-4 w-4 mr-1"/>
+                                <span>총 {starCount}개</span>
+                                {monthlyStarCount > 0 && <span className="text-xs text-gray-400 ml-1">(이번 달 {monthlyStarCount}개)</span>}
                             </div>
                             <div className={`flex items-center ${noteCount > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                              <MessageSquare className="h-4 w-4 mr-1" />
-                              <span>기록 {noteCount}건</span>
+                                <MessageSquare className="h-4 w-4 mr-1"/>
+                                <span>기록 {noteCount}건</span>
                             </div>
                             <div className={`flex items-center ${absenceCount > 0 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
-                              <UserX className="h-4 w-4 mr-1" />
-                              <span>이번 달 결석 {absenceCount}회</span>
+                                <UserX className="h-4 w-4 mr-1"/>
+                                <span>이번 달 결석 {absenceCount}회</span>
                             </div>
                           </div>
                         </li>
