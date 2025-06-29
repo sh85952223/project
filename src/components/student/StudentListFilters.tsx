@@ -11,7 +11,7 @@ interface StudentListFiltersProps {
   period: Period;
   selectedSubjects: string[];
   sortKey: SortKey;
-  onFilterChange: (newFilters: { period?: Period; subjects?: string[]; sortKey?: SortKey }) => void;
+  onFilterChange: (newFilters: { period?: Period; subjects?:string[]; sortKey?: SortKey }) => void;
 }
 
 export const StudentListFilters: React.FC<StudentListFiltersProps> = ({
@@ -29,13 +29,18 @@ export const StudentListFilters: React.FC<StudentListFiltersProps> = ({
     onFilterChange({ subjects: newSubjects });
   };
 
+  const handleSelectAllSubjects = () => {
+    onFilterChange({ subjects: subjects });
+  };
+
   return (
     <div className="space-y-4">
         <div className="space-y-4 rounded-lg border bg-white/50 p-4">
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                     <span className="text-sm font-medium">과목 필터:</span>
-                    {/* 👇 [수정] '전체' 버튼을 완전히 제거했습니다. */}
+                    <Button size="sm" variant={selectedSubjects.length === subjects.length ? 'primary' : 'outline'} onClick={handleSelectAllSubjects} className="transition-none">전체</Button>
+                    <div className="h-6 border-l"></div>
                     {subjects.map(subject => (
                         <button 
                             key={subject}
@@ -66,12 +71,13 @@ export const StudentListFilters: React.FC<StudentListFiltersProps> = ({
         </div>
         <div className="flex items-center space-x-2 border-t pt-4">
             <span className="text-sm font-medium mr-2">정렬:</span>
-            <Button size="sm" variant={sortKey === 'default' ? 'primary' : 'outline'} onClick={() => onFilterChange({ sortKey: 'default' })}>
+            {/* 👇 [수정] 모든 정렬 버튼에 transition-none 클래스를 추가하여 애니메이션을 제거합니다. */}
+            <Button size="sm" variant={sortKey === 'default' ? 'primary' : 'outline'} onClick={() => onFilterChange({ sortKey: 'default' })} className="transition-none">
               <ArrowUpDown className="h-4 w-4 mr-1"/>기본 (번호순)
             </Button>
-            <Button size="sm" variant={sortKey === 'absences' ? 'primary' : 'outline'} onClick={() => onFilterChange({ sortKey: 'absences' })}>결석 많은 순</Button>
-            <Button size="sm" variant={sortKey === 'stars' ? 'primary' : 'outline'} onClick={() => onFilterChange({ sortKey: 'stars' })}>칭찬 많은 순</Button>
-            <Button size="sm" variant={sortKey === 'notes' ? 'primary' : 'outline'} onClick={() => onFilterChange({ sortKey: 'notes' })}>기록 많은 순</Button>
+            <Button size="sm" variant={sortKey === 'absences' ? 'primary' : 'outline'} onClick={() => onFilterChange({ sortKey: 'absences' })} className="transition-none">결석 많은 순</Button>
+            <Button size="sm" variant={sortKey === 'stars' ? 'primary' : 'outline'} onClick={() => onFilterChange({ sortKey: 'stars' })} className="transition-none">칭찬 많은 순</Button>
+            <Button size="sm" variant={sortKey === 'notes' ? 'primary' : 'outline'} onClick={() => onFilterChange({ sortKey: 'notes' })} className="transition-none">기록 많은 순</Button>
         </div>
     </div>
   );
