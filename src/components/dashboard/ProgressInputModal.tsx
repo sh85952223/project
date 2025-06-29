@@ -7,37 +7,35 @@ import { SearchableDropdown } from '../ui/SearchableDropdown';
 import { Absence } from '../../types';
 import { UserX, BookOpen, Hash } from 'lucide-react';
 
-interface ProgressInputModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  scheduleId: string;
-}
+// 이제 이 컴포넌트는 props를 받지 않고, Context에서 직접 상태를 가져옵니다.
+export const ProgressInputModal: React.FC = () => {
+  const { 
+    isProgressModalOpen, 
+    closeProgressModal, 
+    editingScheduleId, 
+    schedules, 
+    classes, 
+    updateSchedule 
+  } = useScheduleData();
 
-export const ProgressInputModal: React.FC<ProgressInputModalProps> = ({
-  isOpen,
-  onClose,
-  scheduleId,
-}) => {
-  const { schedules, classes, updateSchedule } = useScheduleData();
-  
-  const schedule = schedules.find(s => s.id === scheduleId);
+  const schedule = schedules.find(s => s.id === editingScheduleId);
   const classInfo = schedule ? classes.find(c => c.id === schedule.classId) : undefined;
 
   const [progress, setProgress] = useState('');
   const [absences, setAbsences] = useState<Absence[]>([]);
 
   useEffect(() => {
-    if (isOpen && schedule) {
+    if (isProgressModalOpen && schedule) {
       setProgress(schedule.progress || '');
       setAbsences(schedule.absences || []);
     }
-  }, [isOpen, schedule]);
+  }, [isProgressModalOpen, schedule]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!progress.trim() || !schedule) return;
-    await updateSchedule(schedule.id, { progress, absences });
-    onClose();
+    if (!progress.trim() || !editingScheduleId) return;
+    await updateSchedule(editingScheduleId, { progress, absences });
+    closeProgressModal();
   };
   
   const handleAbsenceToggle = (studentId: string, studentName: string, studentNumber?: number) => {
@@ -55,12 +53,12 @@ export const ProgressInputModal: React.FC<ProgressInputModalProps> = ({
     ));
   };
 
-  if (!schedule) return null;
+  if (!isProgressModalOpen || !schedule) return null;
 
   const studentOptions = classInfo?.students?.map(s => ({ id: s.id, name: s.name, number: s.number })) || [];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="진도 및 결석생 입력" size="lg">
+    <Modal isOpen={isProgressModalOpen} onClose={closeProgressModal} title="진도 및 결석생 입력" size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-blue-50 p-4 rounded-lg">
           <p className="font-medium">{schedule.time} {classInfo?.name} - {schedule.subject}</p>
@@ -99,7 +97,7 @@ export const ProgressInputModal: React.FC<ProgressInputModalProps> = ({
             </div>
         )}
         <div className="flex justify-end space-x-3 pt-6 border-t">
-            <Button type="button" variant="outline" onClick={onClose}>취소</Button>
+            <Button type="button" variant="outline" onClick={closeProgressModal}>취소</Button>
             <Button type="submit" disabled={!progress.trim()}>저장</Button>
         </div>
       </form>

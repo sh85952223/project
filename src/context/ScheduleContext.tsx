@@ -1,9 +1,7 @@
-import React, { createContext, useContext, ReactNode, useMemo, useState } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useState, useCallback } from 'react';
 import { useSchedules } from '../hooks/useSchedules';
 import { Schedule, ClassInfo } from '../types';
 
-// Context에 담길 데이터와 함수의 타입을 정의합니다.
-// 모달 상태와 제어 함수 타입을 추가합니다.
 interface ScheduleContextType {
   schedules: Schedule[];
   classes: ClassInfo[];
@@ -16,11 +14,22 @@ interface ScheduleContextType {
   updateClass: (classInfo: ClassInfo) => Promise<void>;
   deleteClass: (classId: string) => Promise<void>;
 
-  // Modal State and Functions
+  // '수업 추가' 모달 상태
   isScheduleModalOpen: boolean;
   preselectedClassId: string | null;
   openScheduleModal: (classId?: string | null) => void;
   closeScheduleModal: () => void;
+
+  // '진도 입력' 모달 상태
+  isProgressModalOpen: boolean;
+  editingScheduleId: string | null;
+  openProgressModal: (scheduleId: string) => void;
+  closeProgressModal: () => void;
+
+  // '수업 상세 기록' 페이지 상태
+  viewingScheduleId: string | null;
+  openLessonDetail: (scheduleId: string) => void;
+  closeLessonDetail: () => void;
 }
 
 const ScheduleContext = createContext<ScheduleContextType | undefined>(undefined);
@@ -36,30 +45,56 @@ export const useScheduleData = () => {
 export const ScheduleProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const scheduleData = useSchedules();
 
-  // 모달의 상태를 여기서 중앙 관리합니다.
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [preselectedClassId, setPreselectedClassId] = useState<string | null>(null);
+  
+  const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
+  const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
+  
+  const [viewingScheduleId, setViewingScheduleId] = useState<string | null>(null);
 
-  // 모달을 여는 함수 (특정 반 ID를 받을 수 있음)
-  const openScheduleModal = (classId: string | null = null) => {
+  const openScheduleModal = useCallback((classId: string | null = null) => {
     setPreselectedClassId(classId);
     setIsScheduleModalOpen(true);
-  };
+  }, []);
 
-  // 모달을 닫는 함수
-  const closeScheduleModal = () => {
+  const closeScheduleModal = useCallback(() => {
     setIsScheduleModalOpen(false);
     setPreselectedClassId(null);
-  };
+  }, []);
+
+  const openProgressModal = useCallback((scheduleId: string) => {
+    setEditingScheduleId(scheduleId);
+    setIsProgressModalOpen(true);
+  }, []);
   
-  // 생성한 상태와 함수들을 context를 통해 공유합니다.
+  const closeProgressModal = useCallback(() => {
+      setIsProgressModalOpen(false);
+      setEditingScheduleId(null);
+  }, []);
+
+  const openLessonDetail = useCallback((scheduleId: string) => {
+    setViewingScheduleId(scheduleId);
+  }, []);
+
+  const closeLessonDetail = useCallback(() => {
+    setViewingScheduleId(null);
+  }, []);
+  
   const value = useMemo(() => ({
     ...scheduleData,
     isScheduleModalOpen,
     preselectedClassId,
     openScheduleModal,
     closeScheduleModal,
-  }), [scheduleData, isScheduleModalOpen, preselectedClassId]);
+    isProgressModalOpen,
+    editingScheduleId,
+    openProgressModal,
+    closeProgressModal,
+    viewingScheduleId,
+    openLessonDetail,
+    closeLessonDetail,
+  }), [scheduleData, isScheduleModalOpen, preselectedClassId, isProgressModalOpen, editingScheduleId, viewingScheduleId]);
 
   return (
     <ScheduleContext.Provider value={value}>

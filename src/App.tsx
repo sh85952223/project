@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ScheduleProvider } from './context/ScheduleContext';
+import { ScheduleProvider, useScheduleData } from './context/ScheduleContext';
 import { Layout } from './components/Layout';
 import { AuthForm } from './components/auth/AuthForm';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { ClassManagement } from './components/dashboard/ClassManagement';
 import { StudentManagement } from './components/student/StudentManagement'; 
-import { Settings } from './components/settings/Settings'; // 👈 Settings 컴포넌트 import
+import { Settings } from './components/settings/Settings';
+import { LessonDetail } from './components/dashboard/LessonDetail';
 
 function AppContent() {
   const { teacher, isLoading } = useAuth();
-  // 👈 'settings' 뷰 상태 추가
   const [currentView, setCurrentView] = useState<'dashboard' | 'classes' | 'students' | 'settings'>('dashboard');
+  
+  const { viewingScheduleId } = useScheduleData();
 
   if (isLoading) {
     return (
@@ -28,30 +30,38 @@ function AppContent() {
     return <AuthForm />;
   }
 
+  // 상세 기록 페이지를 최우선으로 렌더링
+  if (viewingScheduleId) {
+    return (
+      <Layout>
+        <LessonDetail />
+      </Layout>
+    );
+  }
+
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard': return <Dashboard />;
       case 'classes': return <ClassManagement />;
       case 'students': return <StudentManagement />;
-      // 👈 Settings 컴포넌트 렌더링 추가
       case 'settings': return <Settings />;
       default: return <Dashboard />;
     }
   };
 
   return (
-    <ScheduleProvider>
-      <Layout currentView={currentView} onViewChange={setCurrentView}>
-        {renderContent()}
-      </Layout>
-    </ScheduleProvider>
+    <Layout currentView={currentView} onViewChange={setCurrentView}>
+      {renderContent()}
+    </Layout>
   );
 }
 
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <ScheduleProvider>
+        <AppContent />
+      </ScheduleProvider>
     </AuthProvider>
   );
 }

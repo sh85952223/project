@@ -18,10 +18,10 @@ export const Dashboard: React.FC = () => {
     isLoading,
     openScheduleModal,
     deleteSchedule,
+    openProgressModal,
+    openLessonDetail
   } = useScheduleData();
   
-  const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
-  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
   const today = new Date();
@@ -36,31 +36,18 @@ export const Dashboard: React.FC = () => {
     }
   }).sort((a, b) => a.time.localeCompare(b.time, undefined, { numeric: true }));
 
-  // 👈 [수정] '지난 수업'을 찾는 로직 개선
   const getPreviousClassSession = (currentSchedule: Schedule): Schedule | null => {
     const { classId, date: currentDate, time: currentTime } = currentSchedule;
-
     const candidates = schedules.filter(s => 
-      s.classId === classId && // 같은 반이어야 하고
-      s.progress &&             // 진도 내용이 있어야 하며
-      s.id !== currentSchedule.id && // 자기 자신은 제외하고
-      // (날짜가 이전이거나) 또는 (날짜는 같은데 시간이 이전)인 경우
+      s.classId === classId && s.progress && s.id !== currentSchedule.id &&
       (s.date < currentDate || (s.date === currentDate && s.time.localeCompare(currentTime, undefined, { numeric: true }) < 0))
     );
-
     if (candidates.length === 0) return null;
-
-    // 후보들을 날짜 내림차순, 시간 내림차순으로 정렬하여 가장 최근 수업을 찾음
     return candidates.sort((a, b) => {
       const dateComparison = b.date.localeCompare(a.date);
       if (dateComparison !== 0) return dateComparison;
       return b.time.localeCompare(a.time, undefined, { numeric: true });
     })[0];
-  };
-
-  const handleProgressInput = (scheduleId: string) => {
-    setSelectedScheduleId(scheduleId);
-    setIsProgressModalOpen(true);
   };
 
   const handleViewClassDetail = (classId: string) => {
@@ -72,39 +59,27 @@ export const Dashboard: React.FC = () => {
   };
 
   if (selectedClassId) {
-    const selectedClass = classes.find(c => c.id === selectedClassId);
-    
-    if (!selectedClass) {
-      return (
-        <div className="text-center py-12">
-          <p className="mb-4">해당 반을 찾을 수 없습니다.</p>
-          <Button onClick={handleBackToDashboard}>대시보드로 돌아가기</Button>
-        </div>
-      );
-    }
-    
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <button onClick={handleBackToDashboard} className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 text-sm font-medium mb-3">
-              <ArrowLeft className="h-4 w-4" />
-              <span>대시보드로 돌아가기</span>
-            </button>
-            <h1 className="text-2xl font-bold text-gray-900">{selectedClass.name}</h1>
-            <p className="text-gray-600">{selectedClass.grade}학년</p>
-          </div>
-          <Button onClick={() => openScheduleModal(selectedClassId)} className="flex items-center space-x-2" disabled={isLoading}>
-            <Plus className="h-4 w-4" />
-            <span>수업 추가</span>
-          </Button>
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+            <div>
+                <button onClick={handleBackToDashboard} className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 text-sm font-medium mb-3">
+                <ArrowLeft className="h-4 w-4" />
+                <span>대시보드로 돌아가기</span>
+                </button>
+                <h1 className="text-2xl font-bold text-gray-900">{classes.find(c=>c.id === selectedClassId)?.name}</h1>
+                <p className="text-gray-600">{classes.find(c=>c.id === selectedClassId)?.grade}학년</p>
+            </div>
+            <Button onClick={() => openScheduleModal(selectedClassId)} className="flex items-center space-x-2" disabled={isLoading}>
+                <Plus className="h-4 w-4" />
+                <span>수업 추가</span>
+            </Button>
+            </div>
+            <ScheduleList classId={selectedClassId} />
         </div>
-        <ScheduleList classId={selectedClassId} />
-      </div>
     );
   }
 
-  // 메인 대시보드
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -131,7 +106,6 @@ export const Dashboard: React.FC = () => {
               return (
                 <Card key={schedule.id}>
                   <CardContent className="p-4 space-y-3">
-                    {/* 상단: 수업 정보 및 버튼 */}
                     <div className="flex items-start justify-between">
                         <div className="flex items-center space-x-4">
                             <div className="w-12 text-center flex-shrink-0">
@@ -151,15 +125,17 @@ export const Dashboard: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
-                            <Button size="sm" variant="outline" onClick={() => handleProgressInput(schedule.id)}>
+                            <Button size="sm" variant="outline" title="진도/결석 입력" onClick={() => openProgressModal(schedule.id)}>
                                 <Edit3 className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => deleteSchedule(schedule.id)} className="text-red-500">
+                            <Button size="sm" variant="outline" title="상세 기록" onClick={() => openLessonDetail(schedule.id)}>
+                                <BookText className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" title="수업 삭제" onClick={() => deleteSchedule(schedule.id)} className="text-red-500">
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
-                    {/* 하단: 이전 수업 정보 */}
                     <div className="bg-gray-50 p-3 rounded-lg text-sm">
                       <div className="flex items-center text-gray-500 mb-2">
                           <History className="h-4 w-4 mr-2"/>
@@ -193,12 +169,7 @@ export const Dashboard: React.FC = () => {
             })}
           </div>
         ) : (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p>오늘 등록된 수업이 없습니다.</p>
-              <p className="text-sm text-gray-500 mt-2">우측 상단의 '수업 추가' 버튼으로 새 수업을 등록해보세요.</p>
-            </CardContent>
-          </Card>
+          <Card><CardContent className="text-center py-12"><p>오늘 등록된 수업이 없습니다.</p><p className="text-sm text-gray-500 mt-2">우측 상단의 '수업 추가' 버튼으로 새 수업을 등록해보세요.</p></CardContent></Card>
         )}
       </div>
 
@@ -207,34 +178,16 @@ export const Dashboard: React.FC = () => {
         {classes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {classes.map(classInfo => (
-              <ClassCard
-                key={classInfo.id}
-                classInfo={classInfo}
-                onClick={() => handleViewClassDetail(classInfo.id)}
-              />
+              <ClassCard key={classInfo.id} classInfo={classInfo} onClick={() => handleViewClassDetail(classInfo.id)} />
             ))}
           </div>
         ) : (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p>아직 등록된 반이 없습니다.</p>
-              <p className="text-sm text-gray-500 mt-2">'반 관리' 탭에서 새로운 반을 추가해보세요.</p>
-            </CardContent>
-          </Card>
+          <Card><CardContent className="text-center py-12"><p>아직 등록된 반이 없습니다.</p><p className="text-sm text-gray-500 mt-2">'반 관리' 탭에서 새로운 반을 추가해보세요.</p></CardContent></Card>
         )}
       </div>
       
       <ScheduleModal />
-      {selectedScheduleId && (
-        <ProgressInputModal
-          isOpen={isProgressModalOpen}
-          onClose={() => {
-            setIsProgressModalOpen(false);
-            setSelectedScheduleId(null);
-          }}
-          scheduleId={selectedScheduleId}
-        />
-      )}
+      <ProgressInputModal />
     </div>
   );
 };

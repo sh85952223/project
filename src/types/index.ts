@@ -31,6 +31,8 @@ export interface Schedule {
   absences: Absence[];
   createdAt: string;
   updatedAt: string;
+  praises: Praise[];
+  specialNotes: SpecialNote[];
 }
 
 export interface Absence {
@@ -45,4 +47,16 @@ export interface DashboardStats {
   completedSessions: number;
   totalAbsences: number;
   progressRate: number;
+}
+
+export interface Praise {
+  studentId: string;
+  studentName: string;
+  reason: string;
+}
+
+export interface SpecialNote {
+  studentId: string;
+  studentName: string;
+  note: string;
 }
