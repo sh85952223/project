@@ -5,11 +5,12 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
 import { ClassInfo, Student } from '../../types';
-import { Plus, Users, Upload, Trash2, Edit3, Save, X, FileSpreadsheet, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, Users, Upload, Trash2, Edit3, AlertCircle, CheckCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 export const ClassManagement: React.FC = () => {
-  const { classes, addClass, deleteClass, updateClass } = useScheduleData();
+  // 👇 [수정] 사용하지 않는 addClass와 updateClass를 제거했습니다.
+  const { classes, deleteClass } = useScheduleData();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
@@ -81,7 +82,7 @@ export const ClassManagement: React.FC = () => {
 const AddClassModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
     const { addClass } = useScheduleData();
     const [name, setName] = useState('');
-    const [grade, setGrade] = useState<1 | 2>(1);
+    const [grade, setGrade] = useState<1 | 2 | 3>(1);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -98,9 +99,10 @@ const AddClassModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ is
                 <Input label="반 이름" value={name} onChange={(e) => setName(e.target.value)} placeholder="예: 1학년 1반" required />
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">학년</label>
-                    <select value={grade} onChange={(e) => setGrade(Number(e.target.value) as 1 | 2)} className="form-input">
+                    <select value={grade} onChange={(e) => setGrade(Number(e.target.value) as 1 | 2 | 3)} className="form-input">
                         <option value={1}>1학년</option>
                         <option value={2}>2학년</option>
+                        <option value={3}>3학년</option>
                     </select>
                 </div>
                 <div className="flex justify-end space-x-2 pt-4 border-t">
@@ -135,12 +137,13 @@ const EditClassModal: React.FC<{ isOpen: boolean; onClose: () => void; classInfo
                 <Input label="반 이름" value={name} onChange={(e) => setName(e.target.value)} required />
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">학년</label>
-                    <select value={grade} onChange={(e) => setGrade(Number(e.target.value) as 1 | 2)} className="form-input">
+                    <select value={grade} onChange={(e) => setGrade(Number(e.target.value) as 1 | 2 | 3)} className="form-input">
                         <option value={1}>1학년</option>
                         <option value={2}>2학년</option>
+                        <option value={3}>3학년</option>
                     </select>
                 </div>
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className="flex justify-end space-x-2 pt-4 border-t">
                     <Button type="button" variant="outline" onClick={onClose}>취소</Button>
                     <Button type="submit">저장</Button>
                 </div>
@@ -183,7 +186,6 @@ const StudentManagementModal: React.FC<{ isOpen: boolean; onClose: () => void; c
         setStudents(prev => prev.filter(s => s.id !== studentId));
     };
 
-    // 👈 [수정] 엑셀 파일 처리 로직 개선
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;

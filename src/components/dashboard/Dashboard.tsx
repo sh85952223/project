@@ -10,6 +10,22 @@ import { format, isToday, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { ScheduleList } from './ScheduleList';
 import { Schedule } from '../../types';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+
+const subjectColors = [
+  '#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF',
+  '#A0C4FF', '#BDB2FF', '#FFC6FF', '#E0BBE4', '#D291BC'
+];
+
+const getSubjectColor = (subject: string): string => {
+  if (!subject) return '#E0E0E0';
+  let hash = 0;
+  for (let i = 0; i < subject.length; i++) {
+    hash += subject.charCodeAt(i);
+  }
+  const index = hash % subjectColors.length;
+  return subjectColors[index];
+};
 
 export const Dashboard: React.FC = () => {
   const { 
@@ -23,6 +39,10 @@ export const Dashboard: React.FC = () => {
   } = useScheduleData();
   
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  
+  const [grade1Color] = useLocalStorage<string>('settings:grade1Color', '#f8fafc');
+  const [grade2Color] = useLocalStorage<string>('settings:grade2Color', '#f8fafc');
+  const [grade3Color] = useLocalStorage<string>('settings:grade3Color', '#f8fafc');
 
   const today = new Date();
 
@@ -76,6 +96,7 @@ export const Dashboard: React.FC = () => {
   };
 
   if (selectedClassId) {
+    const selectedClass = classes.find(c=>c.id === selectedClassId);
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -84,8 +105,8 @@ export const Dashboard: React.FC = () => {
                 <ArrowLeft className="h-4 w-4" />
                 <span>대시보드로 돌아가기</span>
                 </button>
-                <h1 className="text-2xl font-bold text-gray-900">{classes.find(c=>c.id === selectedClassId)?.name}</h1>
-                <p className="text-gray-600">{classes.find(c=>c.id === selectedClassId)?.grade}학년</p>
+                <h1 className="text-2xl font-bold text-gray-900">{selectedClass?.name}</h1>
+                <p className="text-gray-600">{selectedClass?.grade}학년</p>
             </div>
             <Button onClick={() => openScheduleModal(selectedClassId)} className="flex items-center space-x-2" disabled={isLoading}>
                 <Plus className="h-4 w-4" />
@@ -120,23 +141,31 @@ export const Dashboard: React.FC = () => {
               const classInfo = classes.find(c => c.id === schedule.classId);
               const overallPreviousSession = getOverallPreviousSession(schedule);
               const subjectPreviousSession = getSubjectSpecificPreviousSession(schedule);
+              
+              const gradeColors: { [key: number]: string } = { 1: grade1Color, 2: grade2Color, 3: grade3Color };
+              const backgroundColor = gradeColors[classInfo?.grade || 0] || 'white';
 
               return (
-                <Card key={schedule.id}>
-                  {/* 👇 [수정] CardContent를 div로 감싸고, 전체 레이아웃을 2단으로 변경 */}
+                <Card key={schedule.id} style={{ backgroundColor }}>
                   <CardContent className="p-4">
                     <div className="flex space-x-4">
-                      {/* 좌측: 교시 정보 */}
                       <div className="w-12 text-center flex-shrink-0 border-r pr-4">
                           <p className="font-bold text-xl text-blue-600">{schedule.time.replace('교시','')}</p>
                           <p className="text-xs text-gray-500">교시</p>
                       </div>
 
-                      {/* 우측: 메인 콘텐츠 (오늘의 수업 정보 + 지난 수업 정보) */}
                       <div className="flex-1 space-y-3">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="font-semibold">{classInfo?.name} - {schedule.subject}</p>
+                                <div className="flex items-center space-x-2 mb-1">
+                                    <span
+                                        className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full text-gray-800"
+                                        style={{ backgroundColor: getSubjectColor(schedule.subject) }}
+                                    >
+                                        {schedule.subject}
+                                    </span>
+                                    <p className="font-semibold">{classInfo?.name}</p>
+                                </div>
                                 <div className="flex items-center text-sm text-gray-600 mt-1">
                                     <FileText className="h-4 w-4 mr-1.5 flex-shrink-0"/>
                                     <p className="truncate">{schedule.progress || '진도 내용 미입력'}</p>
@@ -159,13 +188,12 @@ export const Dashboard: React.FC = () => {
                             </div>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 bg-gray-50 p-3 rounded-lg text-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 bg-gray-50 bg-opacity-75 p-3 rounded-lg text-sm">
                             <div>
                                 <div className="flex items-center text-gray-500 mb-2">
                                     <History className="h-4 w-4 mr-1.5"/>
                                     <h4 className="font-medium">
                                         최근 수업
-                                        {/* 👇 [수정] 과목명 추가 */}
                                         {overallPreviousSession && (
                                             <span className="text-xs font-normal text-gray-400 ml-1">
                                                 ({format(parseISO(overallPreviousSession.date), 'M/d')} {overallPreviousSession.time} - {overallPreviousSession.subject})

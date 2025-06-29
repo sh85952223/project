@@ -9,7 +9,7 @@ export interface Teacher {
 export interface ClassInfo {
   id: string;
   name: string;
-  grade: 1 | 2;
+  grade: 1 | 2 | 3 ;
   students: Student[];
 }
 

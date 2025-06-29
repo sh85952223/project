@@ -3,10 +3,9 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-// 👇 [수정] 사용하지 않는 Star 아이콘을 import 목록에서 제거했습니다.
 import { X, Plus } from 'lucide-react';
+import { ColorPicker } from '../ui/ColorPicker';
 
-// 재사용 가능한 설정 항목 관리 컴포넌트
 const SettingSection: React.FC<{ title: string; items: string[]; setItems: (items: string[]) => void; }> = ({ title, items, setItems }) => {
   const [newItem, setNewItem] = useState('');
 
@@ -54,11 +53,14 @@ const SettingSection: React.FC<{ title: string; items: string[]; setItems: (item
   );
 };
 
-
 export const Settings: React.FC = () => {
   const [subjects, setSubjects] = useLocalStorage<string[]>('settings:subjects', ['기술', '가정']);
   const [periods, setPeriods] = useLocalStorage<string[]>('settings:periods', ['1교시', '2교시', '3교시', '4교시', '5교시', '6교시', '7교시']);
   const [maxStarsPerStudent, setMaxStarsPerStudent] = useLocalStorage<number>('settings:maxStarsPerStudent', 5);
+  const [grade1Color, setGrade1Color] = useLocalStorage<string>('settings:grade1Color', '#f8fafc');
+  const [grade2Color, setGrade2Color] = useLocalStorage<string>('settings:grade2Color', '#f8fafc');
+  // 👇 [추가] 3학년 배경색 상태를 추가합니다.
+  const [grade3Color, setGrade3Color] = useLocalStorage<string>('settings:grade3Color', '#f8fafc');
 
   return (
     <div className="space-y-6">
@@ -68,26 +70,39 @@ export const Settings: React.FC = () => {
         <SettingSection title="교시 관리" items={periods} setItems={setPeriods} />
       </div>
       <Card>
-        <CardHeader>
-            <h3 className="text-lg font-semibold">학생별 최대 칭찬 별 개수 설정</h3>
-        </CardHeader>
+        <CardHeader><h3 className="text-lg font-semibold">학생별 최대 칭찬 별 개수</h3></CardHeader>
         <CardContent className="space-y-4">
-            <p className="text-sm text-gray-600">
-                한 수업에서 한 학생에게 부여할 수 있는 칭찬 별의 최대 개수를 설정합니다.
-            </p>
-            <div className="flex items-center space-x-2">
-                <Input
-                    type="range"
-                    min="1"
-                    max="10"
-                    value={maxStarsPerStudent}
-                    onChange={(e) => setMaxStarsPerStudent(Number(e.target.value))}
-                    className="w-full"
-                />
-                <span className="font-bold text-blue-600 text-lg w-20 text-center">{maxStarsPerStudent}개</span>
-            </div>
+          <div className="flex items-center space-x-2">
+              <Input type="range" min="1" max="10" value={maxStarsPerStudent} onChange={(e) => setMaxStarsPerStudent(Number(e.target.value))} className="w-full" />
+              <span className="font-bold text-blue-600 text-lg w-20 text-center">{maxStarsPerStudent}개</span>
+          </div>
         </CardContent>
       </Card>
+      <div>
+        <h2 className="text-xl font-semibold mb-3">대시보드 카드 배경색 설정</h2>
+        {/* 👇 [수정] grid-cols-3으로 변경하여 3학년까지 표시합니다. */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+                <CardHeader><h3 className="font-semibold">1학년 배경색</h3></CardHeader>
+                <CardContent>
+                    <ColorPicker value={grade1Color} onChange={setGrade1Color} />
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader><h3 className="font-semibold">2학년 배경색</h3></CardHeader>
+                <CardContent>
+                    <ColorPicker value={grade2Color} onChange={setGrade2Color} />
+                </CardContent>
+            </Card>
+            {/* 👇 [추가] 3학년 색상 설정 카드를 추가합니다. */}
+            <Card>
+                <CardHeader><h3 className="font-semibold">3학년 배경색</h3></CardHeader>
+                <CardContent>
+                    <ColorPicker value={grade3Color} onChange={setGrade3Color} />
+                </CardContent>
+            </Card>
+        </div>
+      </div>
     </div>
   );
 };

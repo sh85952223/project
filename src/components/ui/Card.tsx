@@ -1,11 +1,13 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
+// 👇 [수정] style 속성을 받을 수 있도록 React.CSSProperties를 추가합니다.
 interface CardProps {
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
   hover?: boolean;
+  style?: React.CSSProperties;
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -13,6 +15,7 @@ export const Card: React.FC<CardProps> = ({
   className,
   onClick,
   hover = false,
+  style, // style 속성을 props로 받습니다.
 }) => {
   return (
     <div
@@ -23,6 +26,7 @@ export const Card: React.FC<CardProps> = ({
         className
       )}
       onClick={onClick}
+      style={style} // 받은 style 속성을 div에 적용합니다.
     >
       {children}
     </div>
