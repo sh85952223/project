@@ -1,9 +1,10 @@
+// 👇 [수정] 사용하지 않는 useMemo와 Student를 import에서 제거했습니다.
 import React, { useState, useEffect } from 'react';
 import { useScheduleData } from '../../context/ScheduleContext';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Praise, SpecialNote, Student } from '../../types';
+import { Praise, SpecialNote } from '../../types';
 import { ArrowLeft, Award, MessageSquare, Star } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -109,7 +110,6 @@ export const LessonDetail: React.FC = () => {
         </CardHeader>
         <CardContent>
           <table className="w-full text-sm">
-            {/* 👇 [수정] thead 부분의 구조를 변경하여 줄바꿈 문제를 해결했습니다. */}
             <thead>
               <tr className="border-b text-left">
                 <th className="p-3 w-16">번호</th>

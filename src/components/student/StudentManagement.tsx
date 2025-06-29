@@ -3,7 +3,8 @@ import { useScheduleData } from '../../context/ScheduleContext';
 import { Student, ClassInfo, Schedule } from '../../types';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { ArrowLeft, UserX, BookText, Calendar, ChevronDown, Award, MessageSquare, Star } from 'lucide-react';
+// 👇 [수정] 사용하지 않는 BookText, Award 아이콘을 import 목록에서 제거했습니다.
+import { ArrowLeft, UserX, Calendar, ChevronDown, MessageSquare, Star } from 'lucide-react';
 import { format, parseISO, isSameMonth } from 'date-fns';
 import { ko } from 'date-fns/locale';
 

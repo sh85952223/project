@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react'; // 👈 useMemo import 추가
+import React, { useState, useEffect, useMemo } from 'react';
 import { useScheduleData } from '../../context/ScheduleContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { SearchableDropdown } from '../ui/SearchableDropdown';
-import { Schedule, Absence } from '../../types';
+import { Absence } from '../../types'; // 👈 [수정] 사용하지 않는 Schedule 타입 제거
 import { format } from 'date-fns';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 export const ScheduleModal: React.FC = () => {
-  // 👈 [수정] schedules 목록 가져오기
   const { classes, schedules, addSchedule, isScheduleModalOpen, closeScheduleModal, preselectedClassId } = useScheduleData();
   
   const [subjects] = useLocalStorage<string[]>('settings:subjects', ['기술', '가정']);
@@ -25,9 +24,9 @@ export const ScheduleModal: React.FC = () => {
   });
 
   const [formData, setFormData] = useState(getInitialState());
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  // 👇 [수정] 사용하지 않는 errors 상태 제거
+  // const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // 👇 [추가] 선택된 날짜에 이미 수업이 있는 시간 목록을 계산합니다.
   const occupiedTimes = useMemo(() => {
     if (!formData.date) return [];
     return schedules
@@ -38,29 +37,29 @@ export const ScheduleModal: React.FC = () => {
   useEffect(() => {
     if (isScheduleModalOpen) {
       const initialState = getInitialState();
-      // 만약 미리 선택된 반이 있다면, 해당 반으로 초기화
       if(preselectedClassId) {
           initialState.classId = preselectedClassId;
       }
       setFormData(initialState);
-      setErrors({});
+      // setErrors({}); // errors 상태가 없으므로 이 줄도 제거
     }
   }, [isScheduleModalOpen, preselectedClassId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.date) newErrors.date = '날짜를 선택해주세요';
-    if (!formData.time) newErrors.time = '교시를 선택해주세요';
-    if (!formData.classId) newErrors.classId = '반을 선택해주세요';
-    if (!formData.subject) newErrors.subject = '과목을 선택해주세요';
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    
+    // 간단한 유효성 검사
+    if (!formData.date || !formData.time || !formData.classId || !formData.subject) {
+      alert('날짜, 교시, 반, 과목을 모두 선택해주세요.');
       return;
     }
-    addSchedule(formData);
+
+    // 👇 [수정] addSchedule 호출 시 누락된 필드를 추가합니다.
+    addSchedule({
+        ...formData,
+        praises: [],      // praises 필드 추가
+        specialNotes: []  // specialNotes 필드 추가
+    });
     closeScheduleModal();
   };
 
@@ -68,7 +67,6 @@ export const ScheduleModal: React.FC = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value, absences: name === 'classId' ? [] : prev.absences }));
 
-    // 날짜가 변경되면, 선택했던 시간이 중복될 수 있으므로 초기화
     if (name === 'date') {
         setFormData(prev => ({ ...prev, time: '' }));
     }
@@ -95,7 +93,6 @@ export const ScheduleModal: React.FC = () => {
             <Input type="date" name="date" label="날짜" value={formData.date} onChange={handleInputChange} />
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">교시</label>
-                {/* 👇 [수정] 교시 선택 드롭다운 로직 변경 */}
                 <select name="time" value={formData.time} onChange={handleInputChange} className="form-input">
                     <option value="">교시 선택</option>
                     {periods.map(period => {

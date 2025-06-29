@@ -3,7 +3,8 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { X, Plus, Star } from 'lucide-react';
+// 👇 [수정] 사용하지 않는 Star 아이콘을 import 목록에서 제거했습니다.
+import { X, Plus } from 'lucide-react';
 
 // 재사용 가능한 설정 항목 관리 컴포넌트
 const SettingSection: React.FC<{ title: string; items: string[]; setItems: (items: string[]) => void; }> = ({ title, items, setItems }) => {
@@ -57,7 +58,6 @@ const SettingSection: React.FC<{ title: string; items: string[]; setItems: (item
 export const Settings: React.FC = () => {
   const [subjects, setSubjects] = useLocalStorage<string[]>('settings:subjects', ['기술', '가정']);
   const [periods, setPeriods] = useLocalStorage<string[]>('settings:periods', ['1교시', '2교시', '3교시', '4교시', '5교시', '6교시', '7교시']);
-  // 👇 [수정] '학생별 최대 별 개수'로 변경 (localStorage 키, 변수명 변경)
   const [maxStarsPerStudent, setMaxStarsPerStudent] = useLocalStorage<number>('settings:maxStarsPerStudent', 5);
 
   return (
@@ -67,7 +67,6 @@ export const Settings: React.FC = () => {
         <SettingSection title="과목 관리" items={subjects} setItems={setSubjects} />
         <SettingSection title="교시 관리" items={periods} setItems={setPeriods} />
       </div>
-      {/* 👇 [수정] UI 텍스트 및 로직 변경 */}
       <Card>
         <CardHeader>
             <h3 className="text-lg font-semibold">학생별 최대 칭찬 별 개수 설정</h3>

@@ -17,7 +17,7 @@ export interface Student {
   id: string;
   name: string;
   classId: string;
-  number?: number; // 학생 번호 추가
+  number?: number;
 }
 
 export interface Schedule {
@@ -29,17 +29,30 @@ export interface Schedule {
   subject: string;
   progress?: string;
   absences: Absence[];
+  praises: Praise[]; // 👈 이 부분이 Praise 타입을 사용합니다.
+  specialNotes: SpecialNote[];
   createdAt: string;
   updatedAt: string;
-  praises: Praise[];
-  specialNotes: SpecialNote[];
 }
 
 export interface Absence {
   studentId: string;
   studentName: string;
-  studentNumber?: number; // 학생 번호 추가
+  studentNumber?: number;
   reason: string;
+}
+
+// 👇 [수정] Praise 타입을 별(stars)만 사용하도록 변경합니다.
+export interface Praise {
+  studentId: string;
+  studentName: string;
+  stars: number;
+}
+
+export interface SpecialNote {
+  studentId: string;
+  studentName: string;
+  note: string;
 }
 
 export interface DashboardStats {
@@ -47,16 +60,4 @@ export interface DashboardStats {
   completedSessions: number;
   totalAbsences: number;
   progressRate: number;
-}
-
-export interface Praise {
-  studentId: string;
-  studentName: string;
-  reason: string;
-}
-
-export interface SpecialNote {
-  studentId: string;
-  studentName: string;
-  stars: number;
 }
