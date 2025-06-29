@@ -1,13 +1,13 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
-import { BookOpen, LogOut, User, Users, BarChart3, UserCheck } from 'lucide-react'; // 👈 UserCheck 아이콘 추가
+import { BookOpen, LogOut, User, Users, BarChart3, UserCheck, Settings } from 'lucide-react'; // 👈 Settings 아이콘 추가
 
 interface LayoutProps {
   children: React.ReactNode;
-  // 👈 'students' 뷰 추가
-  currentView?: 'dashboard' | 'classes' | 'students';
-  onViewChange?: (view: 'dashboard' | 'classes' | 'students') => void;
+  // 👈 'settings' 뷰 추가
+  currentView?: 'dashboard' | 'classes' | 'students' | 'settings';
+  onViewChange?: (view: 'dashboard' | 'classes' | 'students' | 'settings') => void;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ 
@@ -34,33 +34,18 @@ export const Layout: React.FC<LayoutProps> = ({
 
             {onViewChange && (
               <nav className="flex items-center space-x-1">
-                <Button
-                  variant={currentView === 'dashboard' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => onViewChange('dashboard')}
-                  className="flex items-center space-x-2"
-                >
-                  <BarChart3 className="h-4 w-4" />
-                  <span>대시보드</span>
+                <Button variant={currentView === 'dashboard' ? 'primary' : 'ghost'} size="sm" onClick={() => onViewChange('dashboard')} className="flex items-center space-x-2">
+                  <BarChart3 className="h-4 w-4" /> <span>대시보드</span>
                 </Button>
-                <Button
-                  variant={currentView === 'classes' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => onViewChange('classes')}
-                  className="flex items-center space-x-2"
-                >
-                  <Users className="h-4 w-4" />
-                  <span>반 관리</span>
+                <Button variant={currentView === 'classes' ? 'primary' : 'ghost'} size="sm" onClick={() => onViewChange('classes')} className="flex items-center space-x-2">
+                  <Users className="h-4 w-4" /> <span>반 관리</span>
                 </Button>
-                {/* 👈 [수정] 학생 관리 탭 버튼 추가 */}
-                <Button
-                  variant={currentView === 'students' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => onViewChange('students')}
-                  className="flex items-center space-x-2"
-                >
-                  <UserCheck className="h-4 w-4" />
-                  <span>학생 관리</span>
+                <Button variant={currentView === 'students' ? 'primary' : 'ghost'} size="sm" onClick={() => onViewChange('students')} className="flex items-center space-x-2">
+                  <UserCheck className="h-4 w-4" /> <span>학생 관리</span>
+                </Button>
+                {/* 👈 [수정] 설정 탭 버튼 추가 */}
+                <Button variant={currentView === 'settings' ? 'primary' : 'ghost'} size="sm" onClick={() => onViewChange('settings')} className="flex items-center space-x-2">
+                  <Settings className="h-4 w-4" /> <span>설정</span>
                 </Button>
               </nav>
             )}
@@ -69,18 +54,10 @@ export const Layout: React.FC<LayoutProps> = ({
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <User className="h-5 w-5 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-700">
-                    {teacher.name} 선생님
-                  </span>
+                  <span className="text-sm font-medium text-gray-700">{teacher.name} 선생님</span>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={logout}
-                  className="flex items-center space-x-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>로그아웃</span>
+                <Button variant="ghost" size="sm" onClick={logout} className="flex items-center space-x-2">
+                  <LogOut className="h-4 w-4" /> <span>로그아웃</span>
                 </Button>
               </div>
             )}

@@ -6,15 +6,15 @@ import { Input } from '../ui/Input';
 import { SearchableDropdown } from '../ui/SearchableDropdown';
 import { Schedule, Absence } from '../../types';
 import { format } from 'date-fns';
-import { BookOpen, UserX } from 'lucide-react';
+import { useLocalStorage } from '../../hooks/useLocalStorage'; // 👈 로컬 스토리지 훅 import
 
-// Props 인터페이스를 비웁니다.
-interface ScheduleModalProps {}
-
-export const ScheduleModal: React.FC<ScheduleModalProps> = () => {
-  // 모든 상태와 함수를 Context로부터 가져옵니다.
+export const ScheduleModal: React.FC = () => {
   const { classes, addSchedule, isScheduleModalOpen, closeScheduleModal, preselectedClassId } = useScheduleData();
   
+  // 👈 [수정] 로컬 스토리지에서 설정값 불러오기
+  const [subjects] = useLocalStorage<string[]>('settings:subjects', ['기술', '가정']);
+  const [periods] = useLocalStorage<string[]>('settings:periods', ['1교시', '2교시', '3교시', '4교시', '5교시', '6교시', '7교시']);
+
   const getInitialState = () => ({
     date: format(new Date(), 'yyyy-MM-dd'),
     time: '',
@@ -77,9 +77,10 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = () => {
             <Input type="date" name="date" label="날짜" value={formData.date} onChange={handleInputChange} />
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">교시</label>
+                {/* 👈 [수정] 교시 목록을 설정값으로 변경 */}
                 <select name="time" value={formData.time} onChange={handleInputChange} className="form-input">
                     <option value="">교시 선택</option>
-                    {['1교시', '2교시', '3교시', '4교시', '5교시', '6교시', '7교시'].map(t => <option key={t} value={t}>{t}</option>)}
+                    {periods.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
             </div>
         </div>
@@ -93,9 +94,10 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = () => {
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">과목</label>
+                {/* 👈 [수정] 과목 목록을 설정값으로 변경 */}
                 <select name="subject" value={formData.subject} onChange={handleInputChange} className="form-input">
                     <option value="">과목 선택</option>
-                    {['기술', '가정'].map(s => <option key={s} value={s}>{s}</option>)}
+                    {subjects.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
             </div>
         </div>
