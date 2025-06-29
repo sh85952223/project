@@ -12,7 +12,6 @@ import {
   getDocs,
   where
 } from 'firebase/firestore';
-// 👇 [수정] 사용하지 않는 Student 타입을 import에서 제거했습니다.
 import { Schedule, ClassInfo } from '../types';
 import { useAuth } from '../context/AuthContext';
 
@@ -80,7 +79,6 @@ export const useSchedules = () => {
     };
   }, [teacher]);
 
-  // 👇 [수정] 사용하지 않는 변수 선언을 정리했습니다.
   const initializeDefaultClasses = async (teacherId: string): Promise<ClassInfo[]> => {
     const batch = writeBatch(db);
     const classesCollection = collection(db, 'teachers', teacherId, 'classes');
@@ -101,9 +99,9 @@ export const useSchedules = () => {
 
     const class2Ref = doc(classesCollection);
     const class2Data: ClassInfo = {
-      id: class2Ref.id,
-      name: '1학년 2반',
-      grade: 1,
+      id: '2학년 1반',
+      name: '2학년 1반',
+      grade: 2,
       students: [
         { id: `student_${Date.now()}_3`, name: '박도윤', classId: class2Ref.id, number: 1 },
         { id: `student_${Date.now()}_4`, name: '최지우', classId: class2Ref.id, number: 2 }
@@ -116,7 +114,7 @@ export const useSchedules = () => {
     return newClasses;
   };
 
-  const addSchedule = useCallback(async (schedule: Omit<Schedule, 'id' | 'teacherId' | 'createdAt' | 'updatedAt'>) => {
+  const addSchedule = useCallback(async (schedule: Omit<Schedule, 'id' | 'teacherId' | 'createdAt' | 'updatedAt' | 'praises' | 'specialNotes'>) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     const schedulesCollection = collection(db, 'teachers', teacher.id, 'schedules');
     await addDoc(schedulesCollection, {
@@ -138,18 +136,19 @@ export const useSchedules = () => {
     });
   }, [teacher]);
 
-  const deleteSchedule = useCallback(async (id: string) => {
+  const deleteSchedule = useCallback(async (id: string): Promise<boolean> => {
     if (!teacher) {
-        alert('오류: 로그인 정보가 없습니다.');
-        return;
+        console.error('오류: 로그인 정보가 없습니다.');
+        return false;
     }
     try {
         const scheduleDoc = doc(db, 'teachers', teacher.id, 'schedules', id);
         await deleteDoc(scheduleDoc);
-        alert('수업 기록이 성공적으로 삭제되었습니다.');
+        return true;
     } catch (error) {
         console.error("수업 삭제 중 오류 발생:", error);
         alert('수업 기록 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.');
+        return false;
     }
   }, [teacher]);
   
@@ -163,7 +162,7 @@ export const useSchedules = () => {
     });
   }, [teacher]);
 
-  const addClass = useCallback(async (classInfo: Omit<ClassInfo, 'id'>) => {
+  const addClass = useCallback(async (classInfo: Omit<ClassInfo, 'id' | 'students'>) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     const classesCollection = collection(db, 'teachers', teacher.id, 'classes');
     await addDoc(classesCollection, classInfo);
@@ -195,6 +194,7 @@ export const useSchedules = () => {
     await batch.commit();
   }, [teacher]);
 
+  // 👇 [수정] 누락되었던 함수들을 return 객체에 모두 포함시킵니다.
   return {
     schedules,
     classes,
