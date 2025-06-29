@@ -5,20 +5,21 @@ import { Button } from '../ui/Button';
 import { ClassCard } from './ClassCard';
 import { ScheduleModal } from './ScheduleModal';
 import { ProgressInputModal } from './ProgressInputModal';
+// 👇 [수정] 사용하지 않는 아이콘들을 모두 제거했습니다.
 import { Plus, ArrowLeft } from 'lucide-react';
 import { format, isToday, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { ScheduleList } from './ScheduleList';
 import { Schedule, ClassInfo } from '../../types';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
-import { TodaysLessonCard } from './TodaysLessonCard'; // 👈 [추가] 새로 만든 카드 컴포넌트 import
+import { TodaysLessonCard } from './TodaysLessonCard';
 
 export const Dashboard: React.FC = () => {
   const { 
     schedules, 
     classes,
     isLoading,
-    openScheduleModal
+    openScheduleModal,
   } = useScheduleData();
   
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -30,7 +31,9 @@ export const Dashboard: React.FC = () => {
   const groupedClasses = useMemo(() => {
     return classes.reduce((acc, currentClass) => {
       const grade = currentClass.grade;
-      if (!acc[grade]) acc[grade] = [];
+      if (!acc[grade]) {
+        acc[grade] = [];
+      }
       acc[grade].push(currentClass);
       return acc;
     }, {} as Record<number, ClassInfo[]>);
@@ -123,7 +126,6 @@ export const Dashboard: React.FC = () => {
               const gradeColors: { [key: number]: string } = { 1: grade1Color, 2: grade2Color, 3: grade3Color };
               
               return (
-                // 👇 [수정] 복잡한 UI 대신 TodaysLessonCard 컴포넌트를 사용합니다.
                 <TodaysLessonCard
                   key={schedule.id}
                   schedule={schedule}
