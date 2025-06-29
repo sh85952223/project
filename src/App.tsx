@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react'; // 👈 [수정] React를 제거하고 useState만 직접 가져옵니다.
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ScheduleProvider, useScheduleData } from './context/ScheduleContext';
 import { Layout } from './components/Layout';
 import { AuthForm } from './components/auth/AuthForm';
 import { Dashboard } from './components/dashboard/Dashboard';
-import { ClassManagement } from './components/dashboard/ClassManagement';
+import { ClassManagement } from './components/class/ClassManagement'; 
 import { StudentManagement } from './components/student/StudentManagement'; 
 import { Settings } from './components/settings/Settings';
 import { LessonDetail } from './components/dashboard/LessonDetail';
@@ -30,7 +30,6 @@ function AppContent() {
     return <AuthForm />;
   }
 
-  // 상세 기록 페이지를 최우선으로 렌더링
   if (viewingScheduleId) {
     return (
       <Layout>
