@@ -17,7 +17,8 @@ export const AddClassModal: React.FC<AddClassModalProps> = ({ isOpen, onClose })
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim()) return;
-        addClass({ name, grade, students: [] });
+        // 👇 [수정] students 속성을 제거하여 타입 오류를 해결합니다.
+        addClass({ name, grade });
         setName('');
         setGrade(1);
         onClose();

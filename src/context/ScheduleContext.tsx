@@ -6,27 +6,25 @@ interface ScheduleContextType {
   schedules: Schedule[];
   classes: ClassInfo[];
   isLoading: boolean;
-  addSchedule: (schedule: Omit<Schedule, 'id' | 'teacherId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  addSchedule: (schedule: Omit<Schedule, 'id' | 'teacherId' | 'createdAt' | 'updatedAt' | 'praises' | 'specialNotes'>) => Promise<void>;
   updateSchedule: (id: string, updates: Partial<Schedule>) => Promise<void>;
-  deleteSchedule: (id: string) => Promise<void>;
+  // 👇 [수정] deleteSchedule의 반환 타입을 Promise<boolean>으로 정확히 명시합니다.
+  deleteSchedule: (id: string) => Promise<boolean>;
   clearProgress: (id: string) => Promise<void>;
-  addClass: (classInfo: Omit<ClassInfo, 'id'>) => Promise<void>;
+  addClass: (classInfo: Omit<ClassInfo, 'id' | 'students'>) => Promise<void>;
   updateClass: (classInfo: ClassInfo) => Promise<void>;
   deleteClass: (classId: string) => Promise<void>;
 
-  // '수업 추가' 모달 상태
   isScheduleModalOpen: boolean;
   preselectedClassId: string | null;
   openScheduleModal: (classId?: string | null) => void;
   closeScheduleModal: () => void;
 
-  // '진도 입력' 모달 상태
   isProgressModalOpen: boolean;
   editingScheduleId: string | null;
   openProgressModal: (scheduleId: string) => void;
   closeProgressModal: () => void;
 
-  // '수업 상세 기록' 페이지 상태
   viewingScheduleId: string | null;
   openLessonDetail: (scheduleId: string) => void;
   closeLessonDetail: () => void;

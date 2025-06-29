@@ -26,9 +26,12 @@ export const TodaysLessonCard: React.FC<TodaysLessonCardProps> = ({
   const { deleteSchedule, openProgressModal, openLessonDetail } = useScheduleData();
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
-  // 👇 [수정] 사용자님의 코드에 맞춰, 반환값을 확인하지 않고 삭제 함수만 호출합니다.
   const handleDeleteConfirm = async () => {
-    await deleteSchedule(schedule.id);
+    // 👇 이제 `success`는 boolean 값을 가지므로, if문이 올바르게 동작합니다.
+    const success = await deleteSchedule(schedule.id);
+    if (success) {
+      alert('수업 기록이 성공적으로 삭제되었습니다.');
+    }
   };
 
   return (
@@ -42,7 +45,10 @@ export const TodaysLessonCard: React.FC<TodaysLessonCardProps> = ({
             </div>
             <div className="flex-1 space-y-3">
               <div className="flex items-start justify-between">
-                <div>
+                <div 
+                  className="flex-1 cursor-pointer rounded-md p-2 -m-2 hover:bg-black/5 transition-colors duration-150"
+                  onClick={() => openLessonDetail(schedule.id)}
+                >
                   <div className="flex items-center space-x-2 mb-1">
                     <span
                       className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full text-gray-800"
@@ -61,10 +67,13 @@ export const TodaysLessonCard: React.FC<TodaysLessonCardProps> = ({
                     <p>결석: {schedule.absences.length > 0 ? schedule.absences.map(a => a.studentName).join(', ') : '없음'}</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
-                  <Button size="sm" variant="outline" title="진도/결석 입력" onClick={() => openProgressModal(schedule.id)}><Edit3 className="h-4 w-4" /></Button>
-                  <Button size="sm" variant="outline" title="상세 기록" onClick={() => openLessonDetail(schedule.id)}><BookText className="h-4 w-4" /></Button>
-                  <Button size="sm" variant="ghost" title="수업 삭제" onClick={() => setIsConfirmModalOpen(true)} className="text-red-500"><Trash2 className="h-4 w-4" /></Button>
+                <div className="flex items-center space-x-1 flex-shrink-0 ml-4">
+                  <Button size="sm" variant="outline" title="진도/결석 입력" onClick={() => openProgressModal(schedule.id)}>
+                    <Edit3 className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" variant="outline" title="수업 삭제" onClick={() => setIsConfirmModalOpen(true)} className="text-red-500 hover:bg-red-50 hover:border-red-300 hover:text-red-600">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 bg-gray-50 bg-opacity-75 p-3 rounded-lg text-sm">

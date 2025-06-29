@@ -165,7 +165,10 @@ export const useSchedules = () => {
   const addClass = useCallback(async (classInfo: Omit<ClassInfo, 'id' | 'students'>) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     const classesCollection = collection(db, 'teachers', teacher.id, 'classes');
-    await addDoc(classesCollection, classInfo);
+    await addDoc(classesCollection, {
+      ...classInfo,
+      students: [] 
+    });
   }, [teacher]);
 
   const updateClass = useCallback(async (classInfo: ClassInfo) => {
@@ -178,23 +181,18 @@ export const useSchedules = () => {
   
   const deleteClass = useCallback(async (classId: string) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
-    
     const schedulesCollection = collection(db, 'teachers', teacher.id, 'schedules');
     const q = query(schedulesCollection, where("classId", "==", classId));
-    
     const schedulesSnapshot = await getDocs(q);
     const batch = writeBatch(db);
     schedulesSnapshot.forEach(doc => {
       batch.delete(doc.ref);
     });
-    
     const classDoc = doc(db, 'teachers', teacher.id, 'classes', classId);
     batch.delete(classDoc);
-    
     await batch.commit();
   }, [teacher]);
 
-  // 👇 [수정] 누락되었던 함수들을 return 객체에 모두 포함시킵니다.
   return {
     schedules,
     classes,
