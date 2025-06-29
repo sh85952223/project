@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
-import { BookOpen, LogOut, User, Users, BarChart3 } from 'lucide-react';
+import { BookOpen, LogOut, User, Users, BarChart3, UserCheck } from 'lucide-react'; // 👈 UserCheck 아이콘 추가
 
 interface LayoutProps {
   children: React.ReactNode;
-  currentView?: 'dashboard' | 'classes';
-  onViewChange?: (view: 'dashboard' | 'classes') => void;
+  // 👈 'students' 뷰 추가
+  currentView?: 'dashboard' | 'classes' | 'students';
+  onViewChange?: (view: 'dashboard' | 'classes' | 'students') => void;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ 
@@ -31,7 +32,6 @@ export const Layout: React.FC<LayoutProps> = ({
               </div>
             </div>
 
-            {/* Navigation */}
             {onViewChange && (
               <nav className="flex items-center space-x-1">
                 <Button
@@ -51,6 +51,16 @@ export const Layout: React.FC<LayoutProps> = ({
                 >
                   <Users className="h-4 w-4" />
                   <span>반 관리</span>
+                </Button>
+                {/* 👈 [수정] 학생 관리 탭 버튼 추가 */}
+                <Button
+                  variant={currentView === 'students' ? 'primary' : 'ghost'}
+                  size="sm"
+                  onClick={() => onViewChange('students')}
+                  className="flex items-center space-x-2"
+                >
+                  <UserCheck className="h-4 w-4" />
+                  <span>학생 관리</span>
                 </Button>
               </nav>
             )}
