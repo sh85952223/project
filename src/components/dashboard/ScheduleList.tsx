@@ -25,6 +25,13 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
         return b.time.localeCompare(a.time, undefined, { numeric: true });
     });
 
+  // 👇 [수정] 삭제 확인 로직을 포함한 핸들러 추가
+  const handleDelete = (scheduleId: string) => {
+    if (window.confirm('이 수업 기록을 정말로 삭제하시겠습니까?')) {
+      deleteSchedule(scheduleId);
+    }
+  };
+
   if (classSchedules.length === 0) {
     return (
       <Card><CardContent className="text-center py-12">등록된 수업이 없습니다.</CardContent></Card>
@@ -50,7 +57,8 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
                         <Button size="sm" variant="ghost" title="상세 기록" onClick={() => openLessonDetail(schedule.id)} disabled={isLoading}>
                             <BookText className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" title="수업 삭제" onClick={() => deleteSchedule(schedule.id)} className="text-red-600" disabled={isLoading}>
+                        {/* 👇 [수정] onClick 핸들러 변경 */}
+                        <Button size="sm" variant="ghost" title="수업 삭제" onClick={() => handleDelete(schedule.id)} className="text-red-600" disabled={isLoading}>
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>

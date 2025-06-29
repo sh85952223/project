@@ -80,10 +80,40 @@ export const useSchedules = () => {
   }, [teacher]);
 
   const initializeDefaultClasses = async (teacherId: string): Promise<ClassInfo[]> => {
-    // ... 이 함수는 수정할 필요가 없습니다 ...
+    const batch = writeBatch(db);
+    const classesCollection = collection(db, 'teachers', teacherId, 'classes');
+    const newClasses: ClassInfo[] = [];
+
+    const class1Ref = doc(classesCollection);
+    const class1Data: ClassInfo = { 
+      id: class1Ref.id,
+      name: '1학년 1반', 
+      grade: 1, 
+      students: [
+        { id: `student_${Date.now()}_1`, name: '김민준', classId: class1Ref.id, number: 1 },
+        { id: `student_${Date.now()}_2`, name: '이서아', classId: class1Ref.id, number: 2 }
+      ]
+    };
+    batch.set(class1Ref, { name: class1Data.name, grade: class1Data.grade, students: class1Data.students });
+    newClasses.push(class1Data);
+
+    const class2Ref = doc(classesCollection);
+    const class2Data: ClassInfo = {
+      id: class2Ref.id,
+      name: '1학년 2반',
+      grade: 1,
+      students: [
+        { id: `student_${Date.now()}_3`, name: '박도윤', classId: class2Ref.id, number: 1 },
+        { id: `student_${Date.now()}_4`, name: '최지우', classId: class2Ref.id, number: 2 }
+      ]
+    };
+    batch.set(class2Ref, { name: class2Data.name, grade: class2Data.grade, students: class2Data.students });
+    newClasses.push(class2Data);
+
+    await batch.commit();
+    return newClasses;
   };
 
-  // 👇👇👇 [여기가 수정된 부분입니다] 👇👇👇
   const addSchedule = useCallback(async (schedule: Omit<Schedule, 'id' | 'teacherId' | 'createdAt' | 'updatedAt' | 'praises' | 'specialNotes'>) => {
     if (!teacher) throw new Error('로그인이 필요합니다.');
     const schedulesCollection = collection(db, 'teachers', teacher.id, 'schedules');
@@ -92,9 +122,8 @@ export const useSchedules = () => {
       teacherId: teacher.id,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      // 칭찬과 특이사항 필드를 빈 배열로 초기화합니다.
-      praises: [], 
-      specialNotes: [] 
+      praises: [],
+      specialNotes: []
     });
   }, [teacher]);
 
@@ -107,24 +136,62 @@ export const useSchedules = () => {
     });
   }, [teacher]);
 
+  // 👇👇👇 [여기가 수정된 부분입니다] 👇👇👇
   const deleteSchedule = useCallback(async (id: string) => {
-    // ... 이 함수는 수정할 필요가 없습니다 ...
+    if (!teacher) {
+        alert('오류: 로그인 정보가 없습니다.');
+        return;
+    }
+    try {
+        const scheduleDoc = doc(db, 'teachers', teacher.id, 'schedules', id);
+        await deleteDoc(scheduleDoc);
+        alert('수업 기록이 성공적으로 삭제되었습니다.');
+    } catch (error) {
+        console.error("수업 삭제 중 오류 발생:", error);
+        alert('수업 기록 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    }
   }, [teacher]);
   
   const clearProgress = useCallback(async (id: string) => {
-    // ... 이 함수는 수정할 필요가 없습니다 ...
+    if (!teacher) throw new Error('로그인이 필요합니다.');
+    const scheduleDoc = doc(db, 'teachers', teacher.id, 'schedules', id);
+    await updateDoc(scheduleDoc, {
+      progress: '',
+      absences: [],
+      updatedAt: new Date().toISOString()
+    });
   }, [teacher]);
 
   const addClass = useCallback(async (classInfo: Omit<ClassInfo, 'id'>) => {
-    // ... 이 함수는 수정할 필요가 없습니다 ...
+    if (!teacher) throw new Error('로그인이 필요합니다.');
+    const classesCollection = collection(db, 'teachers', teacher.id, 'classes');
+    await addDoc(classesCollection, classInfo);
   }, [teacher]);
 
   const updateClass = useCallback(async (classInfo: ClassInfo) => {
-    // ... 이 함수는 수정할 필요가 없습니다 ...
+    if (!teacher) throw new Error('로그인이 필요합니다.');
+    const classDoc = doc(db, 'teachers', teacher.id, 'classes', classInfo.id);
+    const plainClassInfo = JSON.parse(JSON.stringify(classInfo));
+    delete plainClassInfo.id; 
+    await updateDoc(classDoc, plainClassInfo);
   }, [teacher]);
   
   const deleteClass = useCallback(async (classId: string) => {
-    // ... 이 함수는 수정할 필요가 없습니다 ...
+    if (!teacher) throw new Error('로그인이 필요합니다.');
+    
+    const schedulesCollection = collection(db, 'teachers', teacher.id, 'schedules');
+    const q = query(schedulesCollection, where("classId", "==", classId));
+    
+    const schedulesSnapshot = await getDocs(q);
+    const batch = writeBatch(db);
+    schedulesSnapshot.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+    
+    const classDoc = doc(db, 'teachers', teacher.id, 'classes', classId);
+    batch.delete(classDoc);
+    
+    await batch.commit();
   }, [teacher]);
 
   return {
