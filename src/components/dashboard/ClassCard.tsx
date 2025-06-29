@@ -44,7 +44,16 @@ export const ClassCard: React.FC<ClassCardProps> = ({
                 <div className="flex items-center justify-between"><div className="flex items-center space-x-2 text-sm text-gray-600"><Users className="h-4 w-4" /> <span>학생 수</span></div><span className="font-medium">{classInfo.students.length}명</span></div>
                 <div className="flex items-center justify-between"><div className="flex items-center space-x-2 text-sm text-gray-600"><BookOpen className="h-4 w-4" /> <span>총 수업</span></div><span className="font-medium">{classSchedules.length}회</span></div>
                 <div className="flex items-center justify-between"><div className="flex items-center space-x-2 text-sm text-gray-600"><TrendingUp className="h-4 w-4" /> <span>완료 수업</span></div><span className="font-medium">{completedSessions}회</span></div>
-                <div className="flex items-center justify-between"><div className="flex items-center space-x-2 text-sm text-gray-600"><UserX className="h-4 w-4" /> <span>총 결석</span></div><span className="font-medium">{totalAbsences}건</span></div>
+                {/* 👈 [수정] 총 결석 부분 UI 개선 */}
+                <div className="flex items-center justify-between">
+                    <div className={`flex items-center space-x-2 text-sm ${totalAbsences > 0 ? 'text-red-500' : 'text-gray-600'}`}>
+                        <UserX className="h-4 w-4" /> 
+                        <span>총 결석</span>
+                    </div>
+                    <span className={`font-medium ${totalAbsences > 0 ? 'text-red-600 font-medium' : 'text-gray-800'}`}>
+                        {totalAbsences}건
+                    </span>
+                </div>
             </div>
         </CardContent>
       </div>
