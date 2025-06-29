@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // 👈 useMemo import 추가
 import { useScheduleData } from '../../context/ScheduleContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
@@ -6,12 +6,12 @@ import { Input } from '../ui/Input';
 import { SearchableDropdown } from '../ui/SearchableDropdown';
 import { Schedule, Absence } from '../../types';
 import { format } from 'date-fns';
-import { useLocalStorage } from '../../hooks/useLocalStorage'; // 👈 로컬 스토리지 훅 import
+import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 export const ScheduleModal: React.FC = () => {
-  const { classes, addSchedule, isScheduleModalOpen, closeScheduleModal, preselectedClassId } = useScheduleData();
+  // 👈 [수정] schedules 목록 가져오기
+  const { classes, schedules, addSchedule, isScheduleModalOpen, closeScheduleModal, preselectedClassId } = useScheduleData();
   
-  // 👈 [수정] 로컬 스토리지에서 설정값 불러오기
   const [subjects] = useLocalStorage<string[]>('settings:subjects', ['기술', '가정']);
   const [periods] = useLocalStorage<string[]>('settings:periods', ['1교시', '2교시', '3교시', '4교시', '5교시', '6교시', '7교시']);
 
@@ -27,9 +27,22 @@ export const ScheduleModal: React.FC = () => {
   const [formData, setFormData] = useState(getInitialState());
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // 👇 [추가] 선택된 날짜에 이미 수업이 있는 시간 목록을 계산합니다.
+  const occupiedTimes = useMemo(() => {
+    if (!formData.date) return [];
+    return schedules
+        .filter(schedule => schedule.date === formData.date)
+        .map(schedule => schedule.time);
+  }, [formData.date, schedules]);
+
   useEffect(() => {
     if (isScheduleModalOpen) {
-      setFormData(getInitialState());
+      const initialState = getInitialState();
+      // 만약 미리 선택된 반이 있다면, 해당 반으로 초기화
+      if(preselectedClassId) {
+          initialState.classId = preselectedClassId;
+      }
+      setFormData(initialState);
       setErrors({});
     }
   }, [isScheduleModalOpen, preselectedClassId]);
@@ -54,6 +67,11 @@ export const ScheduleModal: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value, absences: name === 'classId' ? [] : prev.absences }));
+
+    // 날짜가 변경되면, 선택했던 시간이 중복될 수 있으므로 초기화
+    if (name === 'date') {
+        setFormData(prev => ({ ...prev, time: '' }));
+    }
   };
   
   const handleAbsenceToggle = (studentId: string, studentName: string, studentNumber?: number) => {
@@ -77,10 +95,17 @@ export const ScheduleModal: React.FC = () => {
             <Input type="date" name="date" label="날짜" value={formData.date} onChange={handleInputChange} />
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">교시</label>
-                {/* 👈 [수정] 교시 목록을 설정값으로 변경 */}
+                {/* 👇 [수정] 교시 선택 드롭다운 로직 변경 */}
                 <select name="time" value={formData.time} onChange={handleInputChange} className="form-input">
                     <option value="">교시 선택</option>
-                    {periods.map(t => <option key={t} value={t}>{t}</option>)}
+                    {periods.map(period => {
+                        const isOccupied = occupiedTimes.includes(period);
+                        return (
+                            <option key={period} value={period} disabled={isOccupied}>
+                                {period}{isOccupied ? ' (배정 완료)' : ''}
+                            </option>
+                        );
+                    })}
                 </select>
             </div>
         </div>
@@ -94,7 +119,6 @@ export const ScheduleModal: React.FC = () => {
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">과목</label>
-                {/* 👈 [수정] 과목 목록을 설정값으로 변경 */}
                 <select name="subject" value={formData.subject} onChange={handleInputChange} className="form-input">
                     <option value="">과목 선택</option>
                     {subjects.map(s => <option key={s} value={s}>{s}</option>)}
