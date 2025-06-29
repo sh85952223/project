@@ -58,5 +58,5 @@ export interface Praise {
 export interface SpecialNote {
   studentId: string;
   studentName: string;
-  note: string;
+  stars: number;
 }

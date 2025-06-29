@@ -3,7 +3,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Star } from 'lucide-react';
 
 // 재사용 가능한 설정 항목 관리 컴포넌트
 const SettingSection: React.FC<{ title: string; items: string[]; setItems: (items: string[]) => void; }> = ({ title, items, setItems }) => {
@@ -55,9 +55,10 @@ const SettingSection: React.FC<{ title: string; items: string[]; setItems: (item
 
 
 export const Settings: React.FC = () => {
-  // 로컬 스토리지를 사용하여 설정값을 저장/관리합니다.
   const [subjects, setSubjects] = useLocalStorage<string[]>('settings:subjects', ['기술', '가정']);
   const [periods, setPeriods] = useLocalStorage<string[]>('settings:periods', ['1교시', '2교시', '3교시', '4교시', '5교시', '6교시', '7교시']);
+  // 👇 [수정] '학생별 최대 별 개수'로 변경 (localStorage 키, 변수명 변경)
+  const [maxStarsPerStudent, setMaxStarsPerStudent] = useLocalStorage<number>('settings:maxStarsPerStudent', 5);
 
   return (
     <div className="space-y-6">
@@ -66,6 +67,28 @@ export const Settings: React.FC = () => {
         <SettingSection title="과목 관리" items={subjects} setItems={setSubjects} />
         <SettingSection title="교시 관리" items={periods} setItems={setPeriods} />
       </div>
+      {/* 👇 [수정] UI 텍스트 및 로직 변경 */}
+      <Card>
+        <CardHeader>
+            <h3 className="text-lg font-semibold">학생별 최대 칭찬 별 개수 설정</h3>
+        </CardHeader>
+        <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600">
+                한 수업에서 한 학생에게 부여할 수 있는 칭찬 별의 최대 개수를 설정합니다.
+            </p>
+            <div className="flex items-center space-x-2">
+                <Input
+                    type="range"
+                    min="1"
+                    max="10"
+                    value={maxStarsPerStudent}
+                    onChange={(e) => setMaxStarsPerStudent(Number(e.target.value))}
+                    className="w-full"
+                />
+                <span className="font-bold text-blue-600 text-lg w-20 text-center">{maxStarsPerStudent}개</span>
+            </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
