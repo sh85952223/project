@@ -6,6 +6,7 @@ import { Calendar, Clock, BookOpen, UserX, Edit3, Trash2, BookText } from 'lucid
 import { format, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
+import { ProgressInputModal } from './ProgressInputModal';
 
 interface ScheduleListProps {
   classId: string;
@@ -101,6 +102,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
           title="수업 기록 삭제"
           message="이 수업 기록을 정말로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
       />
+      <ProgressInputModal />
     </>
   );
 };

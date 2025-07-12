@@ -56,9 +56,7 @@ export const ScheduleModal: React.FC = () => {
 
     // 👇 [수정] addSchedule 호출 시 누락된 필드를 추가합니다.
     addSchedule({
-        ...formData,
-        praises: [],      // praises 필드 추가
-        specialNotes: []  // specialNotes 필드 추가
+        ...formData
     });
     closeScheduleModal();
   };
