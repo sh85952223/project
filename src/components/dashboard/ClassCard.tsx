@@ -4,6 +4,7 @@ import { ClassInfo } from '../../types';
 import { Card, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Users, BookOpen, UserX, TrendingUp, Plus } from 'lucide-react';
+import { getCompletedSessionsCount } from '../../utils/dateUtils'; // 👈 [추가] 날짜 유틸리티 함수 import
 
 interface ClassCardProps {
   classInfo: ClassInfo;
@@ -17,7 +18,10 @@ export const ClassCard: React.FC<ClassCardProps> = ({
   const { schedules, openScheduleModal } = useScheduleData();
 
   const classSchedules = schedules.filter(s => s.classId === classInfo.id);
-  const completedSessions = classSchedules.filter(s => s.progress).length;
+  
+  // 👇 [수정] 날짜를 고려한 완료 세션 계산
+  const completedSessions = getCompletedSessionsCount(classSchedules);
+  
   const totalAbsences = classSchedules.reduce((acc, s) => acc + (s.absences?.length || 0), 0);
   const progressRate = classSchedules.length > 0 ? (completedSessions / classSchedules.length) * 100 : 0;
 
@@ -44,7 +48,6 @@ export const ClassCard: React.FC<ClassCardProps> = ({
                 <div className="flex items-center justify-between"><div className="flex items-center space-x-2 text-sm text-gray-600"><Users className="h-4 w-4" /> <span>학생 수</span></div><span className="font-medium">{classInfo.students.length}명</span></div>
                 <div className="flex items-center justify-between"><div className="flex items-center space-x-2 text-sm text-gray-600"><BookOpen className="h-4 w-4" /> <span>총 수업</span></div><span className="font-medium">{classSchedules.length}회</span></div>
                 <div className="flex items-center justify-between"><div className="flex items-center space-x-2 text-sm text-gray-600"><TrendingUp className="h-4 w-4" /> <span>완료 수업</span></div><span className="font-medium">{completedSessions}회</span></div>
-                {/* 👈 [수정] 총 결석 부분 UI 개선 */}
                 <div className="flex items-center justify-between">
                     <div className={`flex items-center space-x-2 text-sm ${totalAbsences > 0 ? 'text-red-500' : 'text-gray-600'}`}>
                         <UserX className="h-4 w-4" /> 

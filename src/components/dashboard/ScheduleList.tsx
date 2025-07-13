@@ -7,6 +7,7 @@ import { format, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { ProgressInputModal } from './ProgressInputModal';
+import { isScheduleCompleted } from '../../utils/dateUtils'; // 👈 [추가] 날짜 유틸리티 함수 import
 
 interface ScheduleListProps {
   classId: string;
@@ -30,7 +31,6 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
     setIsConfirmModalOpen(true);
   };
 
-  // 👇 [수정] 사용자님의 코드에 맞춰, 반환값을 확인하지 않고 삭제 함수만 호출합니다.
   const handleDeleteConfirm = async () => {
     if (!targetScheduleId) return;
     await deleteSchedule(targetScheduleId);
@@ -59,7 +59,10 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ classId }) => {
                           <div className="flex items-center space-x-2"><BookOpen className="h-4 w-4" /><span>{schedule.subject}</span></div>
                       </div>
                       <div className="flex items-center space-x-2">
-                          {schedule.progress && <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">완료</span>}
+                          {/* 👇 [수정] 날짜를 고려한 완료 상태 판단 */}
+                          {isScheduleCompleted(schedule) && (
+                            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">완료</span>
+                          )}
                           <Button size="sm" variant="ghost" title="진도/결석 입력" onClick={() => openProgressModal(schedule.id)} disabled={isLoading}><Edit3 className="h-4 w-4" /></Button>
                           <Button size="sm" variant="ghost" title="상세 기록" onClick={() => openLessonDetail(schedule.id)} disabled={isLoading}><BookText className="h-4 w-4" /></Button>
                           <Button size="sm" variant="ghost" title="수업 삭제" onClick={() => openDeleteConfirmModal(schedule.id)} className="text-red-600" disabled={isLoading}><Trash2 className="h-4 w-4" /></Button>
