@@ -8,7 +8,6 @@ interface ScheduleContextType {
   isLoading: boolean;
   addSchedule: (schedule: Omit<Schedule, 'id' | 'teacherId' | 'createdAt' | 'updatedAt' | 'praises' | 'specialNotes'>) => Promise<void>;
   updateSchedule: (id: string, updates: Partial<Schedule>) => Promise<void>;
-  // 👇 [수정] deleteSchedule의 반환 타입을 Promise<boolean>으로 정확히 명시합니다.
   deleteSchedule: (id: string) => Promise<boolean>;
   clearProgress: (id: string) => Promise<void>;
   addClass: (classInfo: Omit<ClassInfo, 'id' | 'students'>) => Promise<void>;
@@ -26,6 +25,8 @@ interface ScheduleContextType {
   closeProgressModal: () => void;
 
   viewingScheduleId: string | null;
+  // 👇 [추가] LessonDetail에서 돌아갈 반 ID를 관리
+  returnToClassId: string | null;
   openLessonDetail: (scheduleId: string) => void;
   closeLessonDetail: () => void;
 }
@@ -50,6 +51,8 @@ export const ScheduleProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
   
   const [viewingScheduleId, setViewingScheduleId] = useState<string | null>(null);
+  // 👇 [추가] LessonDetail에서 돌아갈 반 ID 상태 추가
+  const [returnToClassId, setReturnToClassId] = useState<string | null>(null);
 
   const openScheduleModal = useCallback((classId: string | null = null) => {
     setPreselectedClassId(classId);
@@ -71,12 +74,18 @@ export const ScheduleProvider: React.FC<{ children: ReactNode }> = ({ children }
       setEditingScheduleId(null);
   }, []);
 
+  // 👇 [수정] LessonDetail을 열 때 해당 수업의 반 ID를 저장
   const openLessonDetail = useCallback((scheduleId: string) => {
+    const schedule = scheduleData.schedules.find(s => s.id === scheduleId);
+    if (schedule) {
+      setReturnToClassId(schedule.classId);
+    }
     setViewingScheduleId(scheduleId);
-  }, []);
+  }, [scheduleData.schedules]);
 
   const closeLessonDetail = useCallback(() => {
     setViewingScheduleId(null);
+    // returnToClassId는 유지하여 Dashboard에서 해당 반의 ScheduleList로 이동할 수 있도록 함
   }, []);
   
   const value = useMemo(() => ({
@@ -90,9 +99,10 @@ export const ScheduleProvider: React.FC<{ children: ReactNode }> = ({ children }
     openProgressModal,
     closeProgressModal,
     viewingScheduleId,
+    returnToClassId, // 👈 [추가] returnToClassId 값 제공
     openLessonDetail,
     closeLessonDetail,
-  }), [scheduleData, isScheduleModalOpen, preselectedClassId, isProgressModalOpen, editingScheduleId, viewingScheduleId]);
+  }), [scheduleData, isScheduleModalOpen, preselectedClassId, isProgressModalOpen, editingScheduleId, viewingScheduleId, returnToClassId]);
 
   return (
     <ScheduleContext.Provider value={value}>

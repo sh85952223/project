@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useScheduleData } from '../../context/ScheduleContext';
 import { Button } from '../ui/Button';
 import { ScheduleModal } from './ScheduleModal';
@@ -12,7 +12,7 @@ import { TodaysLessons } from './TodaysLessons';
 import { ClassStatus } from './ClassStatus';
 
 export const Dashboard: React.FC = () => {
-  const { schedules, classes, isLoading, openScheduleModal } = useScheduleData();
+  const { schedules, classes, isLoading, openScheduleModal, viewingScheduleId, returnToClassId, closeLessonDetail } = useScheduleData();
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   
   const { 
@@ -22,12 +22,24 @@ export const Dashboard: React.FC = () => {
     getSubjectSpecificPreviousSession 
   } = useDashboardData(schedules, classes);
 
+  // 👇 [추가] LessonDetail에서 돌아올 때 해당 반의 ScheduleList로 이동
+  useEffect(() => {
+    if (!viewingScheduleId && returnToClassId) {
+      setSelectedClassId(returnToClassId);
+      // returnToClassId는 ScheduleContext에서 관리하므로 여기서는 초기화하지 않음
+    }
+  }, [viewingScheduleId, returnToClassId]);
+
   const handleViewClassDetail = (classId: string) => {
     setSelectedClassId(classId);
   };
 
   const handleBackToDashboard = () => {
     setSelectedClassId(null);
+    // 👇 [추가] LessonDetail 상태도 완전히 초기화
+    if (viewingScheduleId) {
+      closeLessonDetail();
+    }
   };
 
   if (selectedClassId) {

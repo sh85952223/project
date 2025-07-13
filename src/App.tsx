@@ -1,4 +1,4 @@
-import { useState } from 'react'; // 👈 [수정] React를 제거하고 useState만 직접 가져옵니다.
+import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ScheduleProvider, useScheduleData } from './context/ScheduleContext';
 import { Layout } from './components/Layout';
@@ -30,12 +30,9 @@ function AppContent() {
     return <AuthForm />;
   }
 
+  // 👇 [수정] LessonDetail 표시 시 Layout을 사용하지 않고 직접 렌더링
   if (viewingScheduleId) {
-    return (
-      <Layout>
-        <LessonDetail />
-      </Layout>
-    );
+    return <LessonDetail />;
   }
 
   const renderContent = () => {
