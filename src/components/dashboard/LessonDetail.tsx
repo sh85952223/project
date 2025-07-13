@@ -4,12 +4,11 @@ import { Layout } from '../Layout';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Praise, SpecialNote, Schedule } from '../../types';
+import { Praise, SpecialNote } from '../../types';
 import { ArrowLeft, Award, MessageSquare, Star } from 'lucide-react';
-import { format, parseISO, isToday, isSameWeek, isSameMonth } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
-import { LessonDetailFilters, PeriodFilter, ContentFilters } from './LessonDetailFilters';
 import { LessonHistoryCard } from './LessonHistoryCard';
 
 // StarRating 컴포넌트
@@ -45,14 +44,6 @@ export const LessonDetail: React.FC = () => {
   const [praises, setPraises] = useState<Praise[]>([]);
   const [specialNotes, setSpecialNotes] = useState<SpecialNote[]>([]);
 
-  // 필터 상태
-  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
-  const [contentFilters, setContentFilters] = useState<ContentFilters>({
-    hasAbsences: false,
-    hasPraises: false,
-    hasNotes: false
-  });
-
   useEffect(() => {
     if (schedule) {
       setPraises(schedule.praises || []);
@@ -60,65 +51,19 @@ export const LessonDetail: React.FC = () => {
     }
   }, [schedule]);
 
-  // 과거 수업 기록 필터링
-  const filteredHistorySchedules = useMemo(() => {
+  // 과거 수업 기록 (필터링 없이 모든 기록 표시)
+  const historySchedules = useMemo(() => {
     if (!schedule || !classInfo) return [];
 
-    const today = new Date();
-    
     // 같은 반의 모든 수업 중 현재 수업 제외
-    const historySchedules = schedules
+    return schedules
       .filter(s => s.classId === classInfo.id && s.id !== schedule.id)
       .sort((a, b) => {
         const dateComparison = b.date.localeCompare(a.date);
         if (dateComparison !== 0) return dateComparison;
         return b.time.localeCompare(a.time, undefined, { numeric: true });
       });
-
-    return historySchedules.filter(historySchedule => {
-      try {
-        const scheduleDate = parseISO(historySchedule.date);
-        
-        // 기간 필터
-        let periodMatch = true;
-        switch (periodFilter) {
-          case 'today':
-            periodMatch = isToday(scheduleDate);
-            break;
-          case 'week':
-            periodMatch = isSameWeek(scheduleDate, today, { weekStartsOn: 1 });
-            break;
-          case 'month':
-            periodMatch = isSameMonth(scheduleDate, today);
-            break;
-          case 'all':
-            periodMatch = true;
-            break;
-        }
-
-        if (!periodMatch) return false;
-
-        // 내용 필터
-        const hasAbsences = historySchedule.absences.length > 0;
-        const hasPraises = (historySchedule.praises || []).some(p => p.stars > 0);
-        const hasNotes = (historySchedule.specialNotes || []).some(n => n.note?.trim());
-
-        // 필터가 모두 비활성화된 경우 모든 수업 표시
-        if (!contentFilters.hasAbsences && !contentFilters.hasPraises && !contentFilters.hasNotes) {
-          return true;
-        }
-
-        // 활성화된 필터와 일치하는지 확인
-        return (
-          (contentFilters.hasAbsences && hasAbsences) ||
-          (contentFilters.hasPraises && hasPraises) ||
-          (contentFilters.hasNotes && hasNotes)
-        );
-      } catch (error) {
-        return false;
-      }
-    });
-  }, [schedules, schedule, classInfo, periodFilter, contentFilters]);
+  }, [schedules, schedule, classInfo]);
 
   const handleStarClick = (studentId: string, stars: number) => {
     setPraises(prev => {
@@ -165,9 +110,6 @@ export const LessonDetail: React.FC = () => {
   const presentStudents = classInfo.students.filter(
       student => !schedule.absences.some(a => a.studentId === student.id)
   );
-
-  // 전체 수업 수 (현재 수업 포함)
-  const totalSchedules = schedules.filter(s => s.classId === classInfo.id);
 
   return (
     <Layout>
@@ -244,43 +186,31 @@ export const LessonDetail: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">
-              {classInfo.name} 수업 기록
+              {classInfo.name} 수업 기록 ({historySchedules.length + 1}개)
             </h3>
           </div>
-
-          {/* 필터 */}
-          <LessonDetailFilters
-            periodFilter={periodFilter}
-            onPeriodFilterChange={setPeriodFilter}
-            contentFilters={contentFilters}
-            onContentFilterChange={setContentFilters}
-            totalCount={totalSchedules.length}
-            filteredCount={filteredHistorySchedules.length + 1} // +1은 현재 수업
-          />
 
           {/* 수업 기록 목록 */}
           <div className="space-y-4">
             {/* 현재 수업 표시 */}
             <LessonHistoryCard
               schedule={schedule}
-              classInfo={classInfo}
               currentScheduleId={schedule.id}
             />
 
             {/* 과거 수업 기록들 */}
-            {filteredHistorySchedules.length > 0 ? (
-              filteredHistorySchedules.map(historySchedule => (
+            {historySchedules.length > 0 ? (
+              historySchedules.map(historySchedule => (
                 <LessonHistoryCard
                   key={historySchedule.id}
                   schedule={historySchedule}
-                  classInfo={classInfo}
                   currentScheduleId={schedule.id}
                 />
               ))
             ) : (
               <Card>
                 <CardContent className="text-center py-8 text-gray-500">
-                  선택한 조건에 맞는 수업 기록이 없습니다.
+                  이전 수업 기록이 없습니다.
                 </CardContent>
               </Card>
             )}

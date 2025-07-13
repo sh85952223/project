@@ -1,5 +1,5 @@
 import React from 'react';
-import { Schedule, ClassInfo } from '../../types';
+import { Schedule } from '../../types';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Calendar, Clock, BookOpen, UserX, MessageSquare, Star } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
@@ -7,13 +7,11 @@ import { ko } from 'date-fns/locale';
 
 interface LessonHistoryCardProps {
   schedule: Schedule;
-  classInfo: ClassInfo;
   currentScheduleId: string;
 }
 
 export const LessonHistoryCard: React.FC<LessonHistoryCardProps> = ({
   schedule,
-  classInfo,
   currentScheduleId
 }) => {
   const isCurrentLesson = schedule.id === currentScheduleId;
