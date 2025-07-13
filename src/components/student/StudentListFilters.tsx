@@ -29,17 +29,32 @@ export const StudentListFilters: React.FC<StudentListFiltersProps> = ({
     onFilterChange({ subjects: newSubjects });
   };
 
-  const handleSelectAllSubjects = () => {
-    onFilterChange({ subjects: subjects });
+  // 전체 버튼 클릭 시 토글 동작
+  const handleToggleAll = () => {
+    if (selectedSubjects.length === subjects.length) {
+      // 전체 선택된 상태면 전체 해제
+      onFilterChange({ subjects: [] });
+    } else {
+      // 일부만 선택되었거나 아무것도 선택되지 않은 상태면 전체 선택
+      onFilterChange({ subjects: subjects });
+    }
   };
 
   return (
     <div className="space-y-4">
         <div className="space-y-4 rounded-lg border bg-white/50 p-4">
+            {/* 과목 필터와 기간 필터를 한 줄에 배치 */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                     <span className="text-sm font-medium">과목 필터:</span>
-                    <Button size="sm" variant={selectedSubjects.length === subjects.length ? 'primary' : 'outline'} onClick={handleSelectAllSubjects} className="transition-none">전체</Button>
+                    <Button 
+                        size="sm" 
+                        variant={selectedSubjects.length === subjects.length ? 'primary' : 'outline'} 
+                        onClick={handleToggleAll} 
+                        className="transition-none"
+                    >
+                        전체
+                    </Button>
                     <div className="h-6 border-l"></div>
                     {subjects.map(subject => (
                         <button 
@@ -57,8 +72,12 @@ export const StudentListFilters: React.FC<StudentListFiltersProps> = ({
                     ))}
                 </div>
                 <div className="flex items-center space-x-3">
-                    <span className="text-sm font-medium">기간 필터:</span>
-                    <select value={period} onChange={(e) => onFilterChange({ period: e.target.value as Period })} className="form-input text-sm py-1.5">
+                    <span className="text-sm font-medium whitespace-nowrap">기간 필터:</span>
+                    <select 
+                        value={period} 
+                        onChange={(e) => onFilterChange({ period: e.target.value as Period })} 
+                        className="form-input text-sm py-1.5 whitespace-nowrap"
+                    >
                         <option value="today">오늘</option>
                         <option value="week">이번 주</option>
                         <option value="month">이번 달</option>
@@ -71,7 +90,6 @@ export const StudentListFilters: React.FC<StudentListFiltersProps> = ({
         </div>
         <div className="flex items-center space-x-2 border-t pt-4">
             <span className="text-sm font-medium mr-2">정렬:</span>
-            {/* 👇 [수정] 모든 정렬 버튼에 transition-none 클래스를 추가하여 애니메이션을 제거합니다. */}
             <Button size="sm" variant={sortKey === 'default' ? 'primary' : 'outline'} onClick={() => onFilterChange({ sortKey: 'default' })} className="transition-none">
               <ArrowUpDown className="h-4 w-4 mr-1"/>기본 (번호순)
             </Button>
