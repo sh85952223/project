@@ -6,7 +6,7 @@ import { ArrowLeft, UserX, MessageSquare, Star, Filter } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
-// 👇 [수정] 필터링과 기록 객체를 위한 타입을 명확하게 정의합니다.
+// 필터링과 기록 객체를 위한 타입을 명확하게 정의
 type RecordType = 'all' | 'praise' | 'note' | 'absence';
 type StudentRecord = {
     type: 'absence' | 'praise' | 'note';
@@ -20,7 +20,6 @@ type StudentRecord = {
 
 // 각 기록 아이템을 위한 새로운 컴포넌트
 const RecordItem: React.FC<{ record: StudentRecord }> = ({ record }) => {
-    // 👇 [수정] record.type이 명확한 타입을 가지므로 오류가 발생하지 않습니다.
     const recordTypeInfo = {
         absence: { icon: UserX, color: 'text-red-500', tag: '결석', tagColor: 'bg-red-100 text-red-600' },
         praise: { icon: Star, color: 'text-yellow-500', tag: '칭찬', tagColor: 'bg-yellow-100 text-yellow-700' },
@@ -55,12 +54,15 @@ const RecordItem: React.FC<{ record: StudentRecord }> = ({ record }) => {
     )
 }
 
-
-export const StudentDetailView: React.FC<{ student: Student; classInfo: ClassInfo; schedules: Schedule[]; onBack: () => void; }> = ({ student, classInfo, schedules, onBack }) => {
+export const StudentDetailView: React.FC<{ 
+  student: Student; 
+  classInfo: ClassInfo; 
+  schedules: Schedule[]; 
+  onBack: () => void; 
+}> = ({ student, classInfo, schedules, onBack }) => {
   const [filter, setFilter] = useState<RecordType>('all');
   
   const studentRecords = useMemo(() => {
-    // 👇 [수정] any[] 대신 명확한 타입을 사용합니다.
     const records: StudentRecord[] = [];
 
     schedules.forEach(schedule => {

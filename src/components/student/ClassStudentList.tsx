@@ -25,7 +25,7 @@ export const ClassStudentList: React.FC<ClassStudentListProps> = ({ classId, onB
   const [period, setPeriod] = useState<Period>('month');
   
   const [subjects] = useLocalStorage<string[]>('settings:subjects', ['기술', '가정']);
-  // 👇 [수정] 기본적으로 모든 과목이 선택되도록 초기 상태를 변경합니다.
+  // 기본적으로 모든 과목이 선택되도록 초기 상태를 변경
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(subjects);
   
   const [isPending, startTransition] = useTransition();
@@ -37,7 +37,7 @@ export const ClassStudentList: React.FC<ClassStudentListProps> = ({ classId, onB
   const classInfo = useMemo(() => classes.find(c => c.id === classId), [classId, classes]);
   const { getStats } = useStudentStats(schedules);
 
-  // 설정에서 과목 목록이 변경되면, 선택된 과목 목록도 동기화합니다.
+  // 설정에서 과목 목록이 변경되면, 선택된 과목 목록도 동기화
   useEffect(() => {
     setSelectedSubjects(subjects);
   }, [subjects]);
